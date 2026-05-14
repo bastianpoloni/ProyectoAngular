@@ -1,0 +1,55 @@
+<section class="history-layout">
+  <article class="screen-shell card-surface history-panel">
+    <div class="screen-head">
+      <div>
+        <h2>Histórico y categorías</h2>
+      </div>
+      <a routerLink="/configuracion" class="screen-link">Ajustes</a>
+    </div>
+
+    <div class="mode-switch">
+      <button type="button" [class.active]="mode() === 'Temporal'" (click)="setMode('Temporal')">Vista temporal</button>
+      <button type="button" [class.active]="mode() === 'Categoría'" (click)="setMode('Categoría')">Vista por categoría</button>
+    </div>
+
+    <label class="filter-box">
+      <span>Categoría</span>
+      <select [value]="selectedCategory()" (change)="selectCategory(($any($event.target)).value)">
+        @for (category of categories(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="timeline-card">
+      <p>Gasto por día / semana del actual mes</p>
+      <div class="timeline-bars">
+        @for (entry of timeline(); track entry.label) {
+          <div class="bar-column">
+            <span class="bar-column__income" [style.height.%]="entry.income"></span>
+            <span class="bar-column__expense" [style.height.%]="entry.expense"></span>
+            <small>{{ entry.label }}</small>
+          </div>
+        }
+      </div>
+    </div>
+  </article>
+
+  <aside class="screen-shell card-surface transaction-panel">
+    <h3>Movimientos filtrados</h3>
+
+    <div class="transaction-stack">
+      @for (transaction of transactions().slice(0, 4); track transaction.concept + transaction.date) {
+        <article>
+          <div>
+            <strong>{{ transaction.concept }}</strong>
+            <p>{{ transaction.category }} · {{ transaction.date }}</p>
+          </div>
+          <strong>{{ transaction.amount | signedCurrency }}</strong>
+        </article>
+      }
+    </div>
+
+    
+  </aside>
+</section>
