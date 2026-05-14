@@ -25,4 +25,12 @@ export class SettingsService {
   get usersError() {
     return this.wallet.usersError;
   }
+
+  get currentUser() {
+    return this.wallet.currentUser;
+  }
+
+  addBalance(amount: number) {
+    return this.wallet.updateBalance(amount);
+  }
 }

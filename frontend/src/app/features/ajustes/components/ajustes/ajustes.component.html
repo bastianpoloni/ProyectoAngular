@@ -18,8 +18,20 @@
         <strong>Usuarios backend</strong>
         <p>Datos cargados desde la API de backend.</p>
       </div>
-      <strong>{{ users()?.length || 0 }}</strong>
+      <strong>{{ users().length || 0 }}</strong>
       <p>{{ usersError() }}</p>
+    </div>
+
+    <div class="settings-card">
+      <div>
+        <strong>Agregar saldo CLP</strong>
+        <p>Incrementa el saldo de la cuenta en pesos chilenos.</p>
+      </div>
+      <div class="amount-action">
+        <input #amountInput type="number" min="1" step="1000" placeholder="Monto CLP" />
+        <button type="button" (click)="addBalance(amountInput.value)">Agregar</button>
+      </div>
+      <p class="hint">El saldo se actualiza en el usuario backend y en el resumen.</p>
     </div>
 
     <div class="settings-card">

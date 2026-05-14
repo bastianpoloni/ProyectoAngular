@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { tap } from 'rxjs';
 
 import {
   BudgetCategory,
@@ -18,6 +19,7 @@ export class BilleteraService {
 
   private readonly usersState = signal<User[]>([]);
   readonly users = computed(() => this.usersState());
+  readonly currentUser = computed(() => this.usersState()[0] ?? null);
 
   private readonly usersLoadingState = signal<boolean>(false);
   readonly usersLoading = computed(() => this.usersLoadingState());
@@ -214,4 +216,36 @@ export class BilleteraService {
       error: (error) => console.error('Error fetching transactions:', error)
     });
   }
+
+  addCategory(category: Omit<BudgetCategory, 'id' | 'spent'>) {
+    return this.http.post<BudgetCategory>(`${this.apiUrl}/usuarios/${this.uid}/categorias`, category).pipe(
+      tap(() => this.fetchCategories())
+    );
+  }
+
+  addTransaction(transaction: Omit<TransactionEntry, 'id'>) {
+    return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
+      tap(() => this.fetchTransactions())
+    );
+  }
+
+  updateBalance(amount: number) {
+    const current = this.currentUser();
+    if (!current) {
+      throw new Error('Usuario no cargado');
+    }
+    const newSaldo = current.saldo + amount;
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+      tap((user) => this.usersState.set([user]))
+    );
+  }
+
+  registerUser(payload: { nombre: string; email: string; password: string; saldo?: number }) {
+    return this.http.post<User>(`${this.apiUrl}/auth/register`, payload);
+  }
+
+  loginUser(payload: { email: string; password: string }) {
+    return this.http.post<User>(`${this.apiUrl}/auth/login`, payload);
+  }
 }
+
