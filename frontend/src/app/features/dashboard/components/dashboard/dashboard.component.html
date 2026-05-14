@@ -1,0 +1,80 @@
+<section class="dashboard-grid">
+  <article class="hero-card card-surface">
+    <div class="hero-card__header">
+      <div>
+        <p class="section-tag">Resumen de cuenta</p>
+        <h2>ChanchitoApp</h2>
+      </div>
+      <span class="chip chip--soft">Meta activa</span>
+    </div>
+
+    <div class="balance-box">
+      <span class="balance-box__label">Saldo disponible</span>
+      <strong>{{ summary().balance | signedCurrency }}</strong>
+      <p>Controla gastos sobre presupuesto sin perder el flujo del mes.</p>
+    </div>
+
+    <div class="hero-metrics">
+      <div>
+        <span>Presupuesto</span>
+        <strong>{{ summary().budget | signedCurrency }}</strong>
+      </div>
+      <div>
+        <span>Gastado</span>
+        <strong>{{ summary().spent | signedCurrency }}</strong>
+      </div>
+      <div>
+        <span>Ahorro</span>
+        <strong>{{ summary().savings | signedCurrency }}</strong>
+      </div>
+    </div>
+
+    <a class="primary-action" routerLink="/detalle">Ver detalle de gasto</a>
+  </article>
+
+  <section class="mini-panel card-surface">
+    <div class="panel-heading">
+      <p class="section-tag">Métricas rápidas</p>
+      <span class="chip">{{ savingsRate() }}% ahorro</span>
+    </div>
+
+    <div class="bar-list">
+      @for (category of categories(); track category.name) {
+        <div class="bar-row">
+          <div class="bar-row__meta">
+            <span class="bar-row__icon" [style.background]="category.accent + '1f'">{{ category.icon }}</span>
+            <div>
+              <strong>{{ category.name }}</strong>
+              <p>{{ category.trend }}</p>
+            </div>
+          </div>
+          <div class="bar-track">
+            <span [style.width.%]="(category.spent / category.limit) * 100" [style.background]="category.accent"></span>
+          </div>
+          <small>{{ category.spent | signedCurrency }}</small>
+        </div>
+      }
+    </div>
+  </section>
+</section>
+
+<section class="mini-panel card-surface  " style="margin-top: 2%;">
+    <div class="panel-heading">
+      <p class="section-tag">Movimientos recientes</p>
+      <a routerLink="/historial">Ver histórico</a>
+    </div>
+
+    <div class="transaction-list">
+      @for (transaction of transactions().slice(0, 4); track transaction.concept + transaction.date) {
+        <article class="transaction-row">
+          <div>
+            <strong>{{ transaction.concept }}</strong>
+            <p>{{ transaction.category }} · {{ transaction.date }}</p>
+          </div>
+          <strong [class.is-positive]="transaction.amount > 0" [class.is-negative]="transaction.amount < 0">
+            {{ transaction.amount | signedCurrency }}
+          </strong>
+        </article>
+      }
+    </div>
+  </section>

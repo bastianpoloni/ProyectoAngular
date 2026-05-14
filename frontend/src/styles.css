@@ -1,1 +1,73 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+	color-scheme: light;
+	--bg: #eff4f8;
+	--bg-deep: #d8e6ef;
+	--surface: rgba(255, 255, 255, 0.74);
+	--surface-strong: rgba(255, 255, 255, 0.92);
+	--text: #12212e;
+	--muted: #5f7381;
+	--brand: #4a84b7;
+	--brand-strong: #2d6a99;
+	--accent: #7bc96f;
+	--accent-warm: #f3b548;
+	--danger: #e86f6f;
+	--border: rgba(25, 46, 64, 0.12);
+	--shadow: 0 24px 70px rgba(20, 38, 52, 0.18);
+	--radius-xl: 30px;
+	--radius-lg: 22px;
+	--radius-md: 16px;
+	--radius-sm: 12px;
+	--font-body: 'Manrope', 'Segoe UI', sans-serif;
+	--font-display: 'Space Grotesk', 'Manrope', sans-serif;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	font-family: var(--font-body);
+	color: var(--text);
+	background:
+		radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 40%),
+		radial-gradient(circle at 20% 20%, rgba(74, 132, 183, 0.16), transparent 28%),
+		radial-gradient(circle at 85% 15%, rgba(123, 201, 111, 0.16), transparent 22%),
+		linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background-image: linear-gradient(rgba(18, 33, 46, 0.025) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(18, 33, 46, 0.025) 1px, transparent 1px);
+	background-size: 32px 32px;
+	-webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.26), transparent 85%);
+	mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.26), transparent 85%);
+}
+
+a {
+	color: inherit;
+}
+
+button,
+select,
+input {
+	font: inherit;
+}
+
+img,
+svg {
+	display: block;
+}
+
+::selection {
+	background: rgba(74, 132, 183, 0.2);
+}
