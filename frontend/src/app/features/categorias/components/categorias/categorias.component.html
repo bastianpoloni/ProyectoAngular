@@ -1,0 +1,49 @@
+<section class="screen-layout">
+  <article class="screen-shell card-surface">
+    <div class="screen-head">
+      <div>
+        <h2>Categorías</h2>
+      </div>
+      <a routerLink="/detalle" class="screen-link">Ir al detalle</a>
+    </div>
+
+    <label class="search-box">
+      <span>Buscar</span>
+      <input type="text" placeholder="Comida, transporte, ocio..." disabled>
+    </label>
+
+    <div class="category-grid">
+      @for (category of categories(); track category.name) {
+        <button type="button" class="category-card" [class.active]="selectedCategory() === category.name" (click)="selectCategory(category.name)">
+          <span class="category-card__icon" [style.background]="category.accent + '25'">{{ category.icon }}</span>
+          <strong>{{ category.name }}</strong>
+          <p>{{ category.spent | signedCurrency }} spent / {{ category.limit | signedCurrency }} limit</p>
+          <div class="progress-track">
+            <span [style.width.%]="(category.spent / category.limit) * 100" [style.background]="category.accent"></span>
+          </div>
+        </button>
+      }
+    </div>
+  </article>
+
+  <aside class="screen-shell card-surface detail-panel">
+    <p class="section-tag">Separación lógica/UI</p>
+    <h3>{{ selectedCategoryData().name }}</h3>
+    <div class="detail-kpi">
+      <strong>{{ selectedCategoryData().spent | signedCurrency }}</strong>
+      <span>{{ selectedCategoryData().trend }}</span>
+    </div>
+
+    <div class="history-rows">
+      @for (transaction of transactions(); track transaction.concept + transaction.date) {
+        <article>
+          <div>
+            <strong>{{ transaction.concept }}</strong>
+            <p>{{ transaction.note }}</p>
+          </div>
+          <strong>{{ transaction.amount | signedCurrency }}</strong>
+        </article>
+      }
+    </div>
+  </aside>
+</section>
