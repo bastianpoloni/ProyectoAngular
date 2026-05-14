@@ -1,0 +1,131 @@
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 0.85fr;
+  gap: 18px;
+}
+
+.card-surface,
+.screen-shell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+.screen-shell {
+  padding: 20px;
+}
+
+.screen-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.screen-head h2,
+.list-panel h3 {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+}
+
+.screen-link {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(241, 168, 203, 0.2);
+  color: #8c4f7d;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.donut-box {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.donut-box strong {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  color: #3a8f48;
+}
+
+.donut {
+  width: min(320px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  mask: radial-gradient(circle at center, transparent 40%, #000 41%);
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.legend-grid div,
+.transaction-stack article,
+.summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.legend-grid span {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.transaction-stack,
+.summary-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.transaction-stack p,
+.summary-card p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.positive {
+  color: #2d7f3b;
+}
+
+.negative {
+  color: #ba4f4f;
+}
+
+@media (max-width: 980px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .screen-head,
+  .legend-grid div,
+  .transaction-stack article {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .legend-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,49 @@
+<section class="detail-layout">
+  <article class="screen-shell card-surface chart-panel">
+    <div class="screen-head">
+      <div>
+        <h2>Detalle: comida</h2>
+      </div>
+      <a routerLink="/historial" class="screen-link">Ver histórico</a>
+    </div>
+
+    <div class="donut-box">
+      <p>Total gastado este mes</p>
+      <strong>{{ summary().spent | signedCurrency }}</strong>
+      <div class="donut" [style.background]="'conic-gradient(#68b95b 0 42%, #4a84b7 42% 66%, #f3b548 66% 82%, #dfe8ed 82% 100%)'"></div>
+    </div>
+
+    <div class="legend-grid">
+      @for (category of categories().slice(0, 4); track category.name) {
+        <div>
+          <span [style.background]="category.accent"></span>
+          <p>{{ category.name }}</p>
+        </div>
+      }
+    </div>
+  </article>
+
+  <article class="screen-shell card-surface list-panel">
+    <h3>Historia de transacción</h3>
+
+    <div class="transaction-stack">
+      @for (transaction of transactions().slice(0, 4); track transaction.concept + transaction.date) {
+        <article>
+          <div>
+            <strong>{{ transaction.concept }}</strong>
+            <p>{{ transaction.date }}</p>
+          </div>
+          <strong [class.negative]="transaction.amount < 0" [class.positive]="transaction.amount > 0">
+            {{ transaction.amount | signedCurrency }}
+          </strong>
+        </article>
+      }
+    </div>
+
+    <div class="summary-card">
+      <span>Separación UI/lógica</span>
+      <strong>{{ summary().balance | signedCurrency }}</strong>
+      <p>La vista consume un servicio con estado en signals y un pipe de presentación reutilizable.</p>
+    </div>
+  </article>
+</section>
