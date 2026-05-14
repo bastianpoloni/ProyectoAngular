@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
 import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
 import { HistoryService } from '../../services/historial.service';
@@ -7,7 +8,7 @@ import { HistoryService } from '../../services/historial.service';
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe],
+  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
   templateUrl: './historial.component.html',
   styleUrl: './historial.component.css'
 })

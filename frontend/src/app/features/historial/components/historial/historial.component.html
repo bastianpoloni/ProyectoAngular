@@ -39,13 +39,13 @@
     <h3>Movimientos filtrados</h3>
 
     <div class="transaction-stack">
-      @for (transaction of transactions().slice(0, 4); track transaction.concept + transaction.date) {
+      @for (transaction of transactions().slice(0, 4); track transaction.descripcion + transaction.fecha) {
         <article>
           <div>
-            <strong>{{ transaction.concept }}</strong>
-            <p>{{ transaction.category }} · {{ transaction.date }}</p>
+            <strong>{{ transaction.descripcion }}</strong>
+            <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date }}</p>
           </div>
-          <strong>{{ transaction.amount | signedCurrency }}</strong>
+          <strong>{{ transaction.monto | signedCurrency }}</strong>
         </article>
       }
     </div>

@@ -39,19 +39,19 @@
     </div>
 
     <div class="bar-list">
-      @for (category of categories(); track category.name) {
+      @for (category of categories(); track category.nombre) {
         <div class="bar-row">
           <div class="bar-row__meta">
-            <span class="bar-row__icon" [style.background]="category.accent + '1f'">{{ category.icon }}</span>
+            <span class="bar-row__icon" [style.background]="category.color + '1f'">{{ category.icono }}</span>
             <div>
-              <strong>{{ category.name }}</strong>
-              <p>{{ category.trend }}</p>
+              <strong>{{ category.nombre }}</strong>
+              <p>{{ category.trend ?? '' }}</p>
             </div>
           </div>
           <div class="bar-track">
-            <span [style.width.%]="(category.spent / category.limit) * 100" [style.background]="category.accent"></span>
+            <span [style.width.%]="((category.spent !== undefined ? category.spent : 0) / category.porcentajeLimite) * 100" [style.background]="category.color"></span>
           </div>
-          <small>{{ category.spent | signedCurrency }}</small>
+          <small>{{ (category.spent !== undefined ? category.spent : 0) | signedCurrency }}</small>
         </div>
       }
     </div>
@@ -65,14 +65,14 @@
     </div>
 
     <div class="transaction-list">
-      @for (transaction of transactions().slice(0, 4); track transaction.concept + transaction.date) {
+      @for (transaction of transactions().slice(0, 4); track transaction.id ?? transaction.descripcion + transaction.fecha) {
         <article class="transaction-row">
           <div>
-            <strong>{{ transaction.concept }}</strong>
-            <p>{{ transaction.category }} · {{ transaction.date }}</p>
+            <strong>{{ transaction.descripcion }}</strong>
+            <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date:'shortDate' }}</p>
           </div>
-          <strong [class.is-positive]="transaction.amount > 0" [class.is-negative]="transaction.amount < 0">
-            {{ transaction.amount | signedCurrency }}
+          <strong [class.is-positive]="transaction.monto > 0" [class.is-negative]="transaction.monto < 0">
+            {{ transaction.monto | signedCurrency }}
           </strong>
         </article>
       }

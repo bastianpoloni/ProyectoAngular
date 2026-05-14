@@ -1,3 +1,9 @@
+export interface User {
+  id: string;
+  nombre: string;
+  saldo: number;
+}
+
 export interface WalletSummary {
   balance: number;
   budget: number;
@@ -7,20 +13,24 @@ export interface WalletSummary {
 }
 
 export interface BudgetCategory {
-  name: string;
-  icon: string;
-  accent: string;
-  spent: number;
-  limit: number;
-  trend: string;
+  id: string;
+  color: string;
+  esIngreso: boolean;
+  icono: string;
+  nombre: string;
+  porcentajeLimite: number;
+  limite: number;
+  spent?: number; // calculated
+  trend?: string; // calculated
 }
 
 export interface TransactionEntry {
-  concept: string;
-  category: string;
-  date: string;
-  amount: number;
-  note: string;
+  id?: string;
+  categoriaNombre: string;
+  descripcion: string;
+  monto: number;
+  esIngreso: boolean;
+  fecha: Date;
 }
 
 export interface TimelineEntry {

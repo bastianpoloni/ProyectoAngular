@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
 import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
 import { DetailService } from '../../services/detalle.service';
@@ -7,7 +8,7 @@ import { DetailService } from '../../services/detalle.service';
 @Component({
   selector: 'app-detail',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe],
+  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
   templateUrl: './detalle.component.html',
   styleUrl: './detalle.component.css'
 })

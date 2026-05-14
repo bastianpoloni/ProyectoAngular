@@ -1,40 +1,97 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
 
 import {
   BudgetCategory,
   ScreenPreview,
   TimelineEntry,
   TransactionEntry,
+  User,
   WalletSummary
 } from '../../interfaces/billetera.interface';
 
 @Injectable({ providedIn: 'root' })
 export class BilleteraService {
-  private readonly summaryState = signal<WalletSummary>({
-    balance: 4500,
-    budget: 4500,
-    spent: 350,
-    savings: 680,
-    monthlyIncome: 5200
-  });
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'http://localhost:3000';
+  private readonly uid = 'testUser'; // TODO: get from auth
 
-  private readonly categoryState = signal<BudgetCategory[]>([
-    { name: 'Comida', icon: '🍽', accent: '#68b95b', spent: 350, limit: 500, trend: '+12% vs. semana pasada' },
-    { name: 'Transporte', icon: '🚌', accent: '#4a84b7', spent: 350, limit: 500, trend: 'Controlado' },
-    { name: 'Ocio', icon: '🎟', accent: '#f1a8cb', spent: 250, limit: 500, trend: 'Ligero exceso' },
-    { name: 'Hogar', icon: '🏠', accent: '#d5ae64', spent: 180, limit: 400, trend: 'Por debajo del límite' },
-    { name: 'Ahorro', icon: '🐖', accent: '#7bc96f', spent: 680, limit: 800, trend: 'Meta mensual activa' },
-    { name: 'Salud', icon: '🩺', accent: '#88c0d0', spent: 95, limit: 300, trend: 'Disponible' }
-  ]);
+  private readonly usersState = signal<User[]>([]);
+  readonly users = computed(() => this.usersState());
 
-  private readonly transactionState = signal<TransactionEntry[]>([
-    { concept: 'Comida', category: 'Comida', date: '23/07/2023', amount: -350, note: 'Supermercado semanal' },
-    { concept: 'Descripción', category: 'Ocio', date: '23/03/2023', amount: -120, note: 'Salida con amigos' },
-    { concept: 'Ingreso freelance', category: 'Ingresos', date: '21/03/2023', amount: 1200, note: 'Proyecto UI' },
-    { concept: 'Comida', category: 'Comida', date: '18/03/2023', amount: -30, note: 'Café y snack' },
-    { concept: 'Transporte', category: 'Transporte', date: '16/03/2023', amount: -48, note: 'Metro y bus' },
-    { concept: 'Ahorro automático', category: 'Ahorro', date: '15/03/2023', amount: -200, note: 'Transferencia programada' }
+  private readonly usersLoadingState = signal<boolean>(false);
+  readonly usersLoading = computed(() => this.usersLoadingState());
+
+  private readonly usersErrorState = signal<string | null>(null);
+  readonly usersError = computed(() => this.usersErrorState());
+
+  constructor() {
+    this.loadUsers();
+    this.fetchCategories();
+    this.fetchTransactions();
+  }
+
+  private readonly categoriesState = signal<BudgetCategory[]>([
+    {
+      id: '1',
+      nombre: 'Comida',
+      icono: '🍔',
+      color: '#FF6B6B',
+      esIngreso: false,
+      porcentajeLimite: 0.8,
+      limite: 100000,
+      spent: 80000,
+    },
+    {
+      id: '2',
+      nombre: 'Transporte',
+      icono: '🚗',
+      color: '#4ECDC4',
+      esIngreso: false,
+      porcentajeLimite: 0.6,
+      limite: 50000,
+      spent: 30000,
+    },
+    {
+      id: '3',
+      nombre: 'Entretenimiento',
+      icono: '🎬',
+      color: '#45B7D1',
+      esIngreso: false,
+      porcentajeLimite: 0.9,
+      limite: 30000,
+      spent: 27000,
+    },
   ]);
+  readonly categories = computed(() => this.categoriesState());
+
+  private readonly transactionsState = signal<TransactionEntry[]>([
+    {
+      id: '1',
+      categoriaNombre: 'Comida',
+      descripcion: 'Compra en supermercado',
+      monto: -15000,
+      esIngreso: false,
+      fecha: new Date('2023-10-01'),
+    },
+    {
+      id: '2',
+      categoriaNombre: 'Transporte',
+      descripcion: 'Pasaje de bus',
+      monto: -2000,
+      esIngreso: false,
+      fecha: new Date('2023-10-02'),
+    },
+    {
+      id: '3',
+      categoriaNombre: 'Entretenimiento',
+      descripcion: 'Película en cine',
+      monto: -8000,
+      esIngreso: false,
+      fecha: new Date('2023-10-03'),
+    },
+  ]);
+  readonly transactions = computed(() => this.transactionsState());
 
   private readonly timelineState = signal<TimelineEntry[]>([
     { label: 'Lu', income: 240, expense: 60 },
@@ -45,6 +102,7 @@ export class BilleteraService {
     { label: 'Sa', income: 180, expense: 300 },
     { label: 'Do', income: 90, expense: 80 }
   ]);
+  readonly timeline = computed(() => this.timelineState());
 
   private readonly screenState = signal<ScreenPreview[]>([
     {
@@ -72,26 +130,37 @@ export class BilleteraService {
       accent: '#f1a8cb'
     }
   ]);
-
-  readonly summary = computed(() => this.summaryState());
-  readonly categories = computed(() => this.categoryState());
-  readonly transactions = computed(() => this.transactionState());
-  readonly timeline = computed(() => this.timelineState());
   readonly previews = computed(() => this.screenState());
 
+  readonly summary = computed(() => {
+    const user = this.usersState().length > 0 ? this.usersState()[0] : null;
+    if (!user) return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
+    const balance = user.saldo;
+    const spent = this.totalSpent();
+    const budget = 4500; // TODO: calculate or fetch
+    const savings = 680; // TODO
+    const monthlyIncome = 5200; // TODO
+    return { balance, budget, spent, savings, monthlyIncome };
+  });
+
   readonly topCategories = computed(() =>
-    this.categoryState()
+    this.categoriesState()
       .slice()
-      .sort((left, right) => right.spent - left.spent)
+      .sort((left, right) => (right.spent || 0) - (left.spent || 0))
       .slice(0, 4)
   );
 
-  readonly categoryLabels = computed(() => this.categoryState().map((item) => item.name));
-  readonly totalSpent = computed(() => this.categoryState().reduce((accumulator, item) => accumulator + item.spent, 0));
+  readonly categoryLabels = computed(() => this.categoriesState().map((item) => item.nombre));
+  readonly totalSpent = computed(() => {
+    const transactions = this.transactionsState();
+    return transactions
+      .filter(t => !t.esIngreso)
+      .reduce((acc, t) => acc + t.monto, 0);
+  });
 
   readonly savingsRate = computed(() => {
-    const summary = this.summaryState();
-    return Math.round((summary.savings / summary.monthlyIncome) * 100);
+    const summary = this.summary();
+    return summary.monthlyIncome > 0 ? Math.round((summary.savings / summary.monthlyIncome) * 100) : 0;
   });
 
   readonly selectedCategory = signal('Comida');
@@ -99,12 +168,12 @@ export class BilleteraService {
 
   readonly selectedCategoryData = computed(() => {
     const currentCategory = this.selectedCategory();
-    return this.categoryState().find((item) => item.name === currentCategory) ?? this.categoryState()[0];
+    return this.categoriesState().find((item) => item.nombre === currentCategory) ?? this.categoriesState()[0];
   });
 
   readonly filteredTransactions = computed(() => {
     const category = this.selectedCategory();
-    return this.transactionState().filter((item) => item.category === category || category === 'Todas');
+    return this.transactionsState().filter((item) => item.categoriaNombre === category || category === 'Todas');
   });
 
   readonly categoryOptions = computed(() => ['Todas', ...this.categoryLabels()]);
@@ -115,5 +184,34 @@ export class BilleteraService {
 
   setHistoryMode(mode: 'Temporal' | 'Categoría'): void {
     this.historyMode.set(mode);
+  }
+
+  private loadUsers(): void {
+    this.usersLoadingState.set(true);
+    this.usersErrorState.set(null);
+    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+      next: (data) => {
+        this.usersState.set([data]);
+        this.usersLoadingState.set(false);
+      },
+      error: (err) => {
+        this.usersErrorState.set(err.message || 'Error loading users');
+        this.usersLoadingState.set(false);
+      },
+    });
+  }
+
+  fetchCategories(): void {
+    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+      next: (data) => this.categoriesState.set(data),
+      error: (error) => console.error('Error fetching categories:', error)
+    });
+  }
+
+  fetchTransactions(): void {
+    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+      next: (data) => this.transactionsState.set(data.map(t => ({ ...t, fecha: new Date(t.fecha) }))),
+      error: (error) => console.error('Error fetching transactions:', error)
+    });
   }
 }

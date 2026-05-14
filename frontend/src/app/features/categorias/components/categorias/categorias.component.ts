@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
 import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
 import { CategoriesService } from '../../services/categorias.service';
@@ -7,7 +8,7 @@ import { CategoriesService } from '../../services/categorias.service';
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe],
+  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.css'
 })

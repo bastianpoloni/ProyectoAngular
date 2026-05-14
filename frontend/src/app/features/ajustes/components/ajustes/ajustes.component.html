@@ -15,6 +15,15 @@
 
     <div class="settings-card">
       <div>
+        <strong>Usuarios backend</strong>
+        <p>Datos cargados desde la API de backend.</p>
+      </div>
+      <strong>{{ users()?.length || 0 }}</strong>
+      <p>{{ usersError() }}</p>
+    </div>
+
+    <div class="settings-card">
+      <div>
         <strong>Notificaciones</strong>
         <p>Alertas cuando una categoría supera el 80%</p>
       </div>
@@ -28,14 +37,14 @@
     <h3>Ajustes categorías</h3>
 
     <div class="settings-list">
-      @for (category of categories(); track category.name) {
+      @for (category of categories(); track category.nombre) {
         <div>
-          <span>{{ category.icon }}</span>
+          <span>{{ category.icono }}</span>
           <div>
-            <strong>{{ category.name }}</strong>
-            <p>{{ category.trend }}</p>
+            <strong>{{ category.nombre }}</strong>
+            <p>{{ category.porcentajeLimite * 100 }}% del límite</p>
           </div>
-          <strong>{{ category.limit | signedCurrency }}</strong>
+          <strong>{{ category.limite | signedCurrency }}</strong>
         </div>
       }
     </div>

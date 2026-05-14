@@ -13,4 +13,16 @@ export class SettingsService {
   get categories() {
     return this.wallet.categories;
   }
+
+  get users() {
+    return this.wallet.users;
+  }
+
+  get usersLoading() {
+    return this.wallet.usersLoading;
+  }
+
+  get usersError() {
+    return this.wallet.usersError;
+  }
 }

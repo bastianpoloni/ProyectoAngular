@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
 import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
 import { DashboardService } from '../../services/dashboard.service';
@@ -7,7 +8,7 @@ import { DashboardService } from '../../services/dashboard.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe],
+  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

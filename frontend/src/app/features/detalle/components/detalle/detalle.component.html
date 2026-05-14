@@ -14,10 +14,10 @@
     </div>
 
     <div class="legend-grid">
-      @for (category of categories().slice(0, 4); track category.name) {
+      @for (category of categories().slice(0, 4); track category.nombre) {
         <div>
-          <span [style.background]="category.accent"></span>
-          <p>{{ category.name }}</p>
+          <span [style.background]="category.color"></span>
+          <p>{{ category.nombre }}</p>
         </div>
       }
     </div>
@@ -27,14 +27,14 @@
     <h3>Historia de transacción</h3>
 
     <div class="transaction-stack">
-      @for (transaction of transactions().slice(0, 4); track transaction.concept + transaction.date) {
+      @for (transaction of transactions().slice(0, 4); track transaction.descripcion + transaction.fecha) {
         <article>
           <div>
-            <strong>{{ transaction.concept }}</strong>
-            <p>{{ transaction.date }}</p>
+            <strong>{{ transaction.descripcion }}</strong>
+            <p>{{ transaction.fecha | date:'short' }}</p>
           </div>
-          <strong [class.negative]="transaction.amount < 0" [class.positive]="transaction.amount > 0">
-            {{ transaction.amount | signedCurrency }}
+          <strong [class.negative]="transaction.monto < 0" [class.positive]="transaction.monto > 0">
+            {{ transaction.monto | signedCurrency }}
           </strong>
         </article>
       }

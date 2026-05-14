@@ -15,4 +15,7 @@ export class SettingsComponent {
 
   protected readonly summary = this.svc.summary;
   protected readonly categories = this.svc.categories;
+  protected readonly users = this.svc.users;
+  protected readonly usersLoading = this.svc.usersLoading;
+  protected readonly usersError = this.svc.usersError;
 }

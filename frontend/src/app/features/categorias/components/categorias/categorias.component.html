@@ -13,13 +13,13 @@
     </label>
 
     <div class="category-grid">
-      @for (category of categories(); track category.name) {
-        <button type="button" class="category-card" [class.active]="selectedCategory() === category.name" (click)="selectCategory(category.name)">
-          <span class="category-card__icon" [style.background]="category.accent + '25'">{{ category.icon }}</span>
-          <strong>{{ category.name }}</strong>
-          <p>{{ category.spent | signedCurrency }} spent / {{ category.limit | signedCurrency }} limit</p>
+      @for (category of categories(); track category.nombre) {
+        <button type="button" class="category-card" [class.active]="selectedCategory() === category.nombre" (click)="selectCategory(category.nombre)">
+          <span class="category-card__icon" [style.background]="category.color + '25'">{{ category.icono }}</span>
+          <strong>{{ category.nombre }}</strong>
+          <p>{{ (category.spent ?? 0) | signedCurrency }} spent / {{ category.porcentajeLimite }}% limit</p>
           <div class="progress-track">
-            <span [style.width.%]="(category.spent / category.limit) * 100" [style.background]="category.accent"></span>
+            <span [style.width.%]="category.porcentajeLimite" [style.background]="category.color"></span>
           </div>
         </button>
       }
@@ -28,20 +28,20 @@
 
   <aside class="screen-shell card-surface detail-panel">
     <p class="section-tag">Separación lógica/UI</p>
-    <h3>{{ selectedCategoryData().name }}</h3>
+    <h3>{{ selectedCategoryData().nombre }}</h3>
     <div class="detail-kpi">
-      <strong>{{ selectedCategoryData().spent | signedCurrency }}</strong>
-      <span>{{ selectedCategoryData().trend }}</span>
+      <strong>{{ (selectedCategoryData().spent ?? 0) | signedCurrency }}</strong>
+      <span>{{ selectedCategoryData().trend ?? '' }}</span>
     </div>
 
     <div class="history-rows">
-      @for (transaction of transactions(); track transaction.concept + transaction.date) {
+      @for (transaction of transactions(); track transaction.id ?? transaction.descripcion + transaction.fecha) {
         <article>
           <div>
-            <strong>{{ transaction.concept }}</strong>
-            <p>{{ transaction.note }}</p>
+            <strong>{{ transaction.descripcion }}</strong>
+            <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date:'shortDate' }}</p>
           </div>
-          <strong>{{ transaction.amount | signedCurrency }}</strong>
+          <strong>{{ transaction.monto | signedCurrency }}</strong>
         </article>
       }
     </div>
