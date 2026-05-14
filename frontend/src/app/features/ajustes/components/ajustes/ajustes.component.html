@@ -1,0 +1,43 @@
+<section class="settings-layout">
+  <article class="screen-shell card-surface settings-panel">
+    <div>
+      <p class="section-tag">Configuración</p>
+      <h2>Preferencias y presupuesto</h2>
+    </div>
+
+    <div class="settings-card">
+      <div>
+        <strong>Presupuesto mensual</strong>
+        <p>Balance base para la meta del mes</p>
+      </div>
+      <strong>{{ summary().budget | signedCurrency }}</strong>
+    </div>
+
+    <div class="settings-card">
+      <div>
+        <strong>Notificaciones</strong>
+        <p>Alertas cuando una categoría supera el 80%</p>
+      </div>
+      <span class="toggle toggle--on">Activas</span>
+    </div>
+
+   
+  </article>
+
+  <aside class="screen-shell card-surface categories-panel">
+    <h3>Ajustes categorías</h3>
+
+    <div class="settings-list">
+      @for (category of categories(); track category.name) {
+        <div>
+          <span>{{ category.icon }}</span>
+          <div>
+            <strong>{{ category.name }}</strong>
+            <p>{{ category.trend }}</p>
+          </div>
+          <strong>{{ category.limit | signedCurrency }}</strong>
+        </div>
+      }
+    </div>
+  </aside>
+</section>
