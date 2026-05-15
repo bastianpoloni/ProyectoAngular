@@ -19,7 +19,7 @@ export interface BudgetCategory {
   icono: string;
   nombre: string;
   porcentajeLimite: number;
-  limite: number;
+  limiteMonto?: number;
   spent?: number; // calculated
   trend?: string; // calculated
 }

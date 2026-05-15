@@ -4,20 +4,23 @@
       <div>
         <h2>Categorías</h2>
       </div>
-      <a routerLink="/detalle" class="screen-link">Ir al detalle</a>
+      <div class="header-actions">
+        <button class="btn-add-category" (click)="isAddingCategory = true">Agregar categoría</button>
+        <a routerLink="/detalle" class="screen-link">Ir al detalle</a>
+      </div>
     </div>
 
     <label class="search-box">
       <span>Buscar</span>
-      <input type="text" placeholder="Comida, transporte, ocio..." disabled>
+      <input #searchInput type="text" placeholder="Nombre categoría" (input)="searchTerm.set(searchInput.value)">
     </label>
 
     <div class="category-grid">
-      @for (category of categories(); track category.nombre) {
+      @for (category of filteredCategories(); track category.nombre) {
         <button type="button" class="category-card" [class.active]="selectedCategory() === category.nombre" (click)="selectCategory(category.nombre)">
           <span class="category-card__icon" [style.background]="category.color + '25'">{{ category.icono }}</span>
           <strong>{{ category.nombre }}</strong>
-          <p>{{ (category.spent ?? 0) | signedCurrency }} spent / {{ category.porcentajeLimite }}% limit</p>
+          <p>{{ getUsed(category) | clpCurrency }} utilizado / {{ (category.limiteMonto ?? 0) | clpCurrency }} límite</p>
           <div class="progress-track">
             <span [style.width.%]="category.porcentajeLimite" [style.background]="category.color"></span>
           </div>
@@ -27,11 +30,24 @@
   </article>
 
   <aside class="screen-shell card-surface detail-panel">
-    <p class="section-tag">Separación lógica/UI</p>
     <h3>{{ selectedCategoryData().nombre }}</h3>
     <div class="detail-kpi">
-      <strong>{{ (selectedCategoryData().spent ?? 0) | signedCurrency }}</strong>
+      <strong>{{ (selectedCategoryData().spent ?? 0) | clpCurrency }}</strong>
       <span>{{ selectedCategoryData().trend ?? '' }}</span>
+    </div>
+
+    <div class="transaction-actions">
+      <button type="button" class="btn-full-width" (click)="isAddingTransaction = !isAddingTransaction">
+        {{ isAddingTransaction ? 'Cancelar' : 'Nueva Transacción' }}
+      </button>
+
+      @if (isAddingTransaction) {
+        <div class="add-tx-form">
+          <input #descInput type="text" placeholder="Descripción" class="tx-input">
+          <input #montoInput type="number" placeholder="Monto" class="tx-input">
+          <button type="button" class="btn-save-tx" (click)="addTransaction(descInput.value, montoInput.value)">Guardar</button>
+        </div>
+      }
     </div>
 
     <div class="history-rows">
@@ -41,9 +57,51 @@
             <strong>{{ transaction.descripcion }}</strong>
             <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date:'shortDate' }}</p>
           </div>
-          <strong>{{ transaction.monto | signedCurrency }}</strong>
+          <strong>{{ transaction.monto | clpCurrency }}</strong>
         </article>
       }
     </div>
   </aside>
+
+  @if (isAddingCategory) {
+    <div class="modal-backdrop">
+      <div class="modal-content card-surface">
+        <h3>Agregar Categoría</h3>
+        
+        <label class="modal-field">
+          Nombre
+          <input #catNombre type="text" placeholder="Ej: Comida" class="modal-input">
+        </label>
+        
+        <label class="modal-field">
+          <div class="modal-range-header">
+            <span>Porcentaje Límite ({{ catPorcentaje.value }}%)</span>
+            <strong>{{ getPreviewAmount(catPorcentaje.value) | clpCurrency }}</strong>
+          </div>
+          <span class="modal-range-hint">Máx disponible: {{ maxPorcentajePermitido }}%</span>
+          <input #catPorcentaje type="range" min="0" [max]="maxPorcentajePermitido" value="0" class="modal-slider" (input)="null">
+        </label>
+        
+        <label class="modal-field-row">
+          <input #catEsIngreso type="checkbox">
+          Es Ingreso
+        </label>
+
+        <label class="modal-field">
+          Ícono (emoji)
+          <input #catIcono type="text" placeholder="🍔" class="modal-input">
+        </label>
+
+        <label class="modal-field">
+          Color
+          <input #catColor type="color" value="#ff0000" class="modal-color-input">
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="isAddingCategory = false">Cancelar</button>
+          <button type="button" class="btn-save" (click)="addCategory(catNombre.value, catPorcentaje.value, catEsIngreso.checked, catIcono.value, catColor.value)">Guardar</button>
+        </div>
+      </div>
+    </div>
+  }
 </section>
