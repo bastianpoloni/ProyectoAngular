@@ -23,7 +23,7 @@ export class HistoryService {
   }
 
   get transactions() {
-    return this.wallet.transactions;
+    return this.wallet.filteredTransactions;
   }
 
   setMode(mode: 'Temporal' | 'Categoría'): void {

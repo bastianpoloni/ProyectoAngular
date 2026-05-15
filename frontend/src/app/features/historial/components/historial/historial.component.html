@@ -39,7 +39,7 @@
     <h3>Movimientos filtrados</h3>
 
     <div class="transaction-stack">
-      @for (transaction of transactions().slice(0, 4); track transaction.descripcion + transaction.fecha) {
+      @for (transaction of transactions(); track transaction.descripcion + transaction.fecha) {
         <article>
           <div>
             <strong>{{ transaction.descripcion }}</strong>
