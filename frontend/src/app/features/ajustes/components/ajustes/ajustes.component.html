@@ -10,7 +10,7 @@
         <strong>Presupuesto mensual</strong>
         <p>Balance base para la meta del mes</p>
       </div>
-      <strong>{{ summary().budget | signedCurrency }}</strong>
+      <strong>{{ summary().budget | clpCurrency }}</strong>
     </div>
 
     <div class="settings-card">
@@ -56,7 +56,7 @@
             <strong>{{ category.nombre }}</strong>
             <p>{{ category.porcentajeLimite * 100 }}% del límite</p>
           </div>
-          <strong>{{ category.limite | signedCurrency }}</strong>
+          <strong>{{ category.limiteMonto | clpCurrency }}</strong>
         </div>
       }
     </div>

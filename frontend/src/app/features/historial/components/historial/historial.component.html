@@ -45,7 +45,7 @@
             <strong>{{ transaction.descripcion }}</strong>
             <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date }}</p>
           </div>
-          <strong>{{ transaction.monto | signedCurrency }}</strong>
+          <strong>{{ transaction.monto | clpCurrency }}</strong>
         </article>
       }
     </div>

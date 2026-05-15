@@ -2,13 +2,13 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
-import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
+import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
 import { DashboardService } from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
+  imports: [RouterLink, ClpCurrencyPipe, DatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

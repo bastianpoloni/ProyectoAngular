@@ -10,22 +10,22 @@
 
     <div class="balance-box">
       <span class="balance-box__label">Saldo disponible</span>
-      <strong>{{ summary().balance | signedCurrency }}</strong>
+      <strong>{{ summary().balance | clpCurrency }}</strong>
       <p>Controla gastos sobre presupuesto sin perder el flujo del mes.</p>
     </div>
 
     <div class="hero-metrics">
       <div>
         <span>Presupuesto</span>
-        <strong>{{ summary().budget | signedCurrency }}</strong>
+        <strong>{{ summary().budget | clpCurrency }}</strong>
       </div>
       <div>
         <span>Gastado</span>
-        <strong>{{ summary().spent | signedCurrency }}</strong>
+        <strong>{{ summary().spent | clpCurrency }}</strong>
       </div>
       <div>
         <span>Ahorro</span>
-        <strong>{{ summary().savings | signedCurrency }}</strong>
+        <strong>{{ summary().savings | clpCurrency }}</strong>
       </div>
     </div>
 
@@ -51,7 +51,7 @@
           <div class="bar-track">
             <span [style.width.%]="((category.spent !== undefined ? category.spent : 0) / category.porcentajeLimite) * 100" [style.background]="category.color"></span>
           </div>
-          <small>{{ (category.spent !== undefined ? category.spent : 0) | signedCurrency }}</small>
+          <small>{{ (category.spent !== undefined ? category.spent : 0) | clpCurrency }}</small>
         </div>
       }
     </div>
@@ -72,7 +72,7 @@
             <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date:'shortDate' }}</p>
           </div>
           <strong [class.is-positive]="transaction.monto > 0" [class.is-negative]="transaction.monto < 0">
-            {{ transaction.monto | signedCurrency }}
+            {{ transaction.monto | clpCurrency }}
           </strong>
         </article>
       }

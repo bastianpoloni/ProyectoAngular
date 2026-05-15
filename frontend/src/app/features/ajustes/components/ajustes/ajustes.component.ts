@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
+import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
 import { SettingsService } from '../../services/ajustes.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, SignedCurrencyPipe],
+  imports: [CommonModule, ClpCurrencyPipe],
   templateUrl: './ajustes.component.html',
   styleUrl: './ajustes.component.css'
 })

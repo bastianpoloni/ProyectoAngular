@@ -9,7 +9,7 @@
 
     <div class="donut-box">
       <p>Total gastado este mes</p>
-      <strong>{{ summary().spent | signedCurrency }}</strong>
+      <strong>{{ summary().spent | clpCurrency }}</strong>
       <div class="donut" [style.background]="'conic-gradient(#68b95b 0 42%, #4a84b7 42% 66%, #f3b548 66% 82%, #dfe8ed 82% 100%)'"></div>
     </div>
 
@@ -34,16 +34,15 @@
             <p>{{ transaction.fecha | date:'short' }}</p>
           </div>
           <strong [class.negative]="transaction.monto < 0" [class.positive]="transaction.monto > 0">
-            {{ transaction.monto | signedCurrency }}
+            {{ transaction.monto | clpCurrency }}
           </strong>
         </article>
       }
     </div>
 
     <div class="summary-card">
-      <span>Separación UI/lógica</span>
-      <strong>{{ summary().balance | signedCurrency }}</strong>
-      <p>La vista consume un servicio con estado en signals y un pipe de presentación reutilizable.</p>
+      <strong>{{ summary().balance | clpCurrency }}</strong>
+    
     </div>
   </article>
 </section>

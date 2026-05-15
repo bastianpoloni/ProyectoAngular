@@ -2,13 +2,13 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
-import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
+import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
 import { HistoryService } from '../../services/historial.service';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
+  imports: [RouterLink, ClpCurrencyPipe, DatePipe],
   templateUrl: './historial.component.html',
   styleUrl: './historial.component.css'
 })

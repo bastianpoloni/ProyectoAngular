@@ -2,13 +2,13 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
-import { SignedCurrencyPipe } from '../../../../shared/pipes/signed-currency.pipe';
+import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
 import { DetailService } from '../../services/detalle.service';
 
 @Component({
   selector: 'app-detail',
   standalone: true,
-  imports: [RouterLink, SignedCurrencyPipe, DatePipe],
+  imports: [RouterLink, ClpCurrencyPipe, DatePipe],
   templateUrl: './detalle.component.html',
   styleUrl: './detalle.component.css'
 })
