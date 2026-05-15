@@ -64,16 +64,39 @@ export class BilleteraService {
   ]);
   readonly transactions = computed(() => this.transactionsState());
 
-  private readonly timelineState = signal<TimelineEntry[]>([
-    { label: 'Lu', income: 240, expense: 60 },
-    { label: 'Ma', income: 180, expense: 180 },
-    { label: 'Mi', income: 320, expense: 90 },
-    { label: 'Ju', income: 140, expense: 220 },
-    { label: 'Vi', income: 260, expense: 120 },
-    { label: 'Sa', income: 180, expense: 300 },
-    { label: 'Do', income: 90, expense: 80 }
-  ]);
-  readonly timeline = computed(() => this.timelineState());
+  readonly timeline = computed(() => {
+    const transactions = this.transactionsState();
+    const days = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
+
+    const entries = days.map((label, dayIndex) => {
+      const dayOfWeek = (dayIndex + 1) % 7;
+      const dayTransactions = transactions.filter(t => {
+        const date = new Date(t.fecha);
+        return date.getDay() === dayOfWeek;
+      });
+
+      const income = dayTransactions
+        .filter(t => t.esIngreso)
+        .reduce((acc, t) => acc + t.monto, 0);
+
+      const expense = dayTransactions
+        .filter(t => !t.esIngreso)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+
+      return { label, income, expense };
+    });
+
+    const maxValue = Math.max(
+      1,
+      ...entries.flatMap(entry => [entry.income, entry.expense])
+    );
+
+    return entries.map(entry => ({
+      ...entry,
+      incomePercent: Math.round((entry.income / maxValue) * 100),
+      expensePercent: Math.round((entry.expense / maxValue) * 100)
+    }));
+  });
 
   private readonly screenState = signal<ScreenPreview[]>([
     {
@@ -210,8 +233,14 @@ export class BilleteraService {
   }
 
   private normalizeCategory(category: BudgetCategory): BudgetCategory {
+    const budget = this.summary().budget || 0;
+    const limiteMonto = category.limiteMonto !== undefined 
+      ? category.limiteMonto 
+      : Math.round(budget * (category.porcentajeLimite / 100));
+    
     return {
       ...category,
+      limiteMonto,
       icono: this.resolveIcono(category.icono)
     };
   }

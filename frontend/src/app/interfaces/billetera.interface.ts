@@ -37,6 +37,8 @@ export interface TimelineEntry {
   label: string;
   income: number;
   expense: number;
+  incomePercent?: number;
+  expensePercent?: number;
 }
 
 export interface ScreenPreview {

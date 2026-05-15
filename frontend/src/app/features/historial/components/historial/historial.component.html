@@ -26,8 +26,8 @@
       <div class="timeline-bars">
         @for (entry of timeline(); track entry.label) {
           <div class="bar-column">
-            <span class="bar-column__income" [style.height.%]="entry.income"></span>
-            <span class="bar-column__expense" [style.height.%]="entry.expense"></span>
+            <span class="bar-column__income" [style.height.%]="entry.incomePercent"></span>
+            <span class="bar-column__expense" [style.height.%]="entry.expensePercent"></span>
             <small>{{ entry.label }}</small>
           </div>
         }
