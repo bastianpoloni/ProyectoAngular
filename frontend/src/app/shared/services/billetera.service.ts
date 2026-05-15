@@ -15,7 +15,7 @@ import {
 export class BilleteraService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:3000';
-  private readonly uid = 'testUser'; // TODO: get from auth
+  private readonly uid = '335ETJFCzKMe5WKJm9e3BltRLPQ2'; // Real user ID from Firebase
 
   private readonly usersState = signal<User[]>([]);
   readonly users = computed(() => this.usersState());
