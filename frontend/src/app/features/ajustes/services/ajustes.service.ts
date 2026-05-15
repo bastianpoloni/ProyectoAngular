@@ -33,4 +33,8 @@ export class SettingsService {
   addBalance(amount: number) {
     return this.wallet.updateBalance(amount);
   }
+
+  setBudget(budget: number) {
+    return this.wallet.updateBudget(budget);
+  }
 }

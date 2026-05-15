@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { tap, switchMap } from 'rxjs';
 
 import {
   BudgetCategory,
@@ -15,7 +15,7 @@ import {
 export class BilleteraService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:3000';
-  private readonly uid = '335ETJFCzKMe5WKJm9e3BltRLPQ2'; // Real user ID from Firebase
+  private readonly uid = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2'; // Real user ID from Firebase
 
   private readonly usersState = signal<User[]>([]);
   readonly users = computed(() => this.usersState());
@@ -131,18 +131,38 @@ export class BilleteraService {
     if (!user) return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
     const balance = user.saldo;
     const spent = this.totalSpent();
-    const budget = 4500; // TODO: calculate or fetch
-    const savings = 680; // TODO
+    const budget = user.presupuesto || 0; // Presupuesto definido por el usuario
+    
+    let savings = 0;
+    const allTransactions = this.transactionsState();
+    this.categoriesState().forEach(category => {
+      const limit = category.limiteMonto !== undefined ? category.limiteMonto : Math.round(budget * (category.porcentajeLimite / 100));
+      const categorySpent = allTransactions
+        .filter(t => !t.esIngreso && t.categoriaNombre === category.nombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      
+      if (limit > categorySpent) {
+        savings += (limit - categorySpent);
+      }
+    });
+
     const monthlyIncome = 5200; // TODO
     return { balance, budget, spent, savings, monthlyIncome };
   });
 
-  readonly topCategories = computed(() =>
-    this.categoriesState()
-      .slice()
-      .sort((left, right) => (right.spent || 0) - (left.spent || 0))
-      .slice(0, 4)
-  );
+  readonly topCategories = computed(() => {
+    const allTransactions = this.transactionsState();
+    const mapped = this.categoriesState().map(cat => {
+      const spent = allTransactions
+        .filter(t => !t.esIngreso && t.categoriaNombre === cat.nombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      return { ...cat, spent };
+    });
+
+    return mapped
+      .sort((left, right) => right.spent - left.spent)
+      .slice(0, 3);
+  });
 
   readonly categoryLabels = computed(() => this.categoriesState().map((item) => item.nombre));
   readonly totalSpent = computed(() => {
@@ -154,7 +174,7 @@ export class BilleteraService {
 
   readonly savingsRate = computed(() => {
     const summary = this.summary();
-    return summary.monthlyIncome > 0 ? Math.round((summary.savings / summary.monthlyIncome) * 100) : 0;
+    return summary.budget > 0 ? Math.round((summary.savings / summary.budget) * 100) : 0;
   });
 
   readonly selectedCategory = signal('Comida');
@@ -217,7 +237,8 @@ export class BilleteraService {
 
   addTransaction(transaction: Omit<TransactionEntry, 'id'>) {
     return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
-      tap(() => this.fetchTransactions())
+      tap(() => this.fetchTransactions()),
+      switchMap(() => this.updateBalance(transaction.monto))
     );
   }
 
@@ -228,6 +249,12 @@ export class BilleteraService {
     }
     const newSaldo = current.saldo + amount;
     return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+      tap((user) => this.usersState.set([user]))
+    );
+  }
+
+  updateBudget(budget: number) {
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { presupuesto: budget }).pipe(
       tap((user) => this.usersState.set([user]))
     );
   }
@@ -246,7 +273,12 @@ export class BilleteraService {
   }
 
   private resolveIcono(value: string | undefined): string {
-    const icono = (value ?? '').toString().trim().toLowerCase();
+    const rawValue = (value ?? '').toString().trim();
+    if (!rawValue) {
+      return '❌';
+    }
+
+    const icono = rawValue.toLowerCase();
     const map: Record<string, string> = {
       'ic_menu_preferences': '⚙️',
       'comida': '🍔',
@@ -258,20 +290,11 @@ export class BilleteraService {
       'ocio': '🎉',
       'remuneraciones (sueldo)': '💼',
       'remuneraciones': '💼',
-      'gasto': '💸',
-      'default': '🔔'
+      'gasto': '💸'
     };
 
-    if (!icono) {
-      return '🔔';
-    }
-
-    if (Object.values(map).includes(icono)) {
-      return value ?? '🔔';
-    }
-
     const simpleKey = icono.replace(/[_\s-]/g, '');
-    return map[icono] ?? map[simpleKey] ?? '🔔';
+    return map[icono] ?? map[simpleKey] ?? rawValue;
   }
 
   registerUser(payload: { nombre: string; email: string; password: string; saldo?: number }) {

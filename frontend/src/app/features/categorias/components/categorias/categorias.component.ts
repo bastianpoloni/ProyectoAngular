@@ -42,13 +42,13 @@ export class CategoriesComponent {
     return Math.max(0, 100 - totalCurrent);
   }
 
-  get userBalance(): number {
-    return this.svc.summary.balance;
+  get userBudget(): number {
+    return this.svc.summary.budget;
   }
 
   getPreviewAmount(porcentajeStr: string): number {
     const p = Number(porcentajeStr) || 0;
-    return (this.userBalance * p) / 100;
+    return (this.userBudget * p) / 100;
   }
 
   selectCategory(category: string): void {
@@ -71,7 +71,6 @@ export class CategoriesComponent {
       fecha: new Date()
     }).subscribe(() => {
       this.isAddingTransaction = false;
-      this.svc.updateBalance(monto).subscribe();
     });
   }
 
@@ -81,6 +80,12 @@ export class CategoriesComponent {
       .filter((t) => t.categoriaNombre === category.nombre)
       .reduce((acc, t) => acc + Math.abs(t.monto), 0);
     return sum;
+  }
+
+  getPercentageUsed(category: any): number {
+    const used = this.getUsed(category);
+    const limit = category.limiteMonto || 1; // Prevent division by zero
+    return Math.min((used / limit) * 100, 100);
   }
 
   addCategory(nombre: string, porcentajeStr: string, esIngreso: boolean, icono: string, color: string) {
@@ -97,7 +102,7 @@ export class CategoriesComponent {
       return;
     }
 
-    const limiteMonto = (this.userBalance * porcentaje) / 100;
+    const limiteMonto = (this.userBudget * porcentaje) / 100;
 
     this.svc.addCategory({
       nombre,
