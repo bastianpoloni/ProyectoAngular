@@ -33,38 +33,7 @@ export class BilleteraService {
     this.fetchTransactions();
   }
 
-  private readonly categoriesState = signal<BudgetCategory[]>([
-    {
-      id: '1',
-      nombre: 'Comida',
-      icono: '🍔',
-      color: '#FF6B6B',
-      esIngreso: false,
-      porcentajeLimite: 0.8,
-      limite: 100000,
-      spent: 80000,
-    },
-    {
-      id: '2',
-      nombre: 'Transporte',
-      icono: '🚗',
-      color: '#4ECDC4',
-      esIngreso: false,
-      porcentajeLimite: 0.6,
-      limite: 50000,
-      spent: 30000,
-    },
-    {
-      id: '3',
-      nombre: 'Entretenimiento',
-      icono: '🎬',
-      color: '#45B7D1',
-      esIngreso: false,
-      porcentajeLimite: 0.9,
-      limite: 30000,
-      spent: 27000,
-    },
-  ]);
+  private readonly categoriesState = signal<BudgetCategory[]>([]);
   readonly categories = computed(() => this.categoriesState());
 
   private readonly transactionsState = signal<TransactionEntry[]>([
@@ -205,7 +174,7 @@ export class BilleteraService {
 
   fetchCategories(): void {
     this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
-      next: (data) => this.categoriesState.set(data),
+      next: (data) => this.categoriesState.set(data.map(category => this.normalizeCategory(category))),
       error: (error) => console.error('Error fetching categories:', error)
     });
   }
@@ -238,6 +207,42 @@ export class BilleteraService {
     return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
       tap((user) => this.usersState.set([user]))
     );
+  }
+
+  private normalizeCategory(category: BudgetCategory): BudgetCategory {
+    return {
+      ...category,
+      icono: this.resolveIcono(category.icono)
+    };
+  }
+
+  private resolveIcono(value: string | undefined): string {
+    const icono = (value ?? '').toString().trim().toLowerCase();
+    const map: Record<string, string> = {
+      'ic_menu_preferences': '⚙️',
+      'comida': '🍔',
+      'alimentacion': '🍲',
+      'transporte': '🚗',
+      'sueldo': '💰',
+      'venta': '💵',
+      'entretenimiento': '🎬',
+      'ocio': '🎉',
+      'remuneraciones (sueldo)': '💼',
+      'remuneraciones': '💼',
+      'gasto': '💸',
+      'default': '🔔'
+    };
+
+    if (!icono) {
+      return '🔔';
+    }
+
+    if (Object.values(map).includes(icono)) {
+      return value ?? '🔔';
+    }
+
+    const simpleKey = icono.replace(/[_\s-]/g, '');
+    return map[icono] ?? map[simpleKey] ?? '🔔';
   }
 
   registerUser(payload: { nombre: string; email: string; password: string; saldo?: number }) {
