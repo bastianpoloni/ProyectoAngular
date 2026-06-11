@@ -21,14 +21,37 @@ export class SettingsComponent {
   protected readonly usersError = this.svc.usersError;
   protected readonly currentUser = this.svc.currentUser;
 
-  protected addBalance(amount: string) {
-    const value = Number(amount);
+  protected addBalance(amountInput: HTMLInputElement) {
+    const value = Number(amountInput.value);
     if (!value || value <= 0) {
       return;
     }
     this.svc.addBalance(value).subscribe({
-      next: () => {},
-      error: (err) => console.error('Error al agregar saldo:', err)
+      next: () => {
+        alert(`Se han agregado $${value} al saldo exitosamente.`);
+        amountInput.value = '';
+      },
+      error: (err) => {
+        alert('Error al agregar saldo.');
+        console.error('Error al agregar saldo:', err);
+      }
+    });
+  }
+
+  protected setBudget(budgetInput: HTMLInputElement) {
+    const value = Number(budgetInput.value);
+    if (!value || value <= 0) {
+      return;
+    }
+    this.svc.setBudget(value).subscribe({
+      next: () => {
+        alert(`El presupuesto mensual se ha actualizado a $${value}.`);
+        budgetInput.value = '';
+      },
+      error: (err) => {
+        alert('Error al actualizar el presupuesto.');
+        console.error('Error al actualizar presupuesto:', err);
+      }
     });
   }
 }

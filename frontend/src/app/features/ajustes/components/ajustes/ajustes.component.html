@@ -1,4 +1,4 @@
-<section class="settings-layout">
+
   <article class="screen-shell card-surface settings-panel">
     <div>
       <p class="section-tag">Configuración</p>
@@ -10,7 +10,11 @@
         <strong>Presupuesto mensual</strong>
         <p>Balance base para la meta del mes</p>
       </div>
-      <strong>{{ summary().budget | clpCurrency }}</strong>
+      <div class="amount-action">
+        <input #budgetInput type="number" min="1" step="1000" placeholder="Monto CLP" />
+        <button type="button" (click)="setBudget(budgetInput)">Guardar</button>
+      </div>
+      <p class="hint">Actualmente: {{ summary().budget | clpCurrency }}</p>
     </div>
 
     <div class="settings-card">
@@ -24,14 +28,12 @@
 
     <div class="settings-card">
       <div>
-        <strong>Agregar saldo CLP</strong>
-        <p>Incrementa el saldo de la cuenta en pesos chilenos.</p>
+        <strong>Agregar presupuesto</strong>
       </div>
       <div class="amount-action">
         <input #amountInput type="number" min="1" step="1000" placeholder="Monto CLP" />
-        <button type="button" (click)="addBalance(amountInput.value)">Agregar</button>
+        <button type="button" (click)="addBalance(amountInput)">Agregar</button>
       </div>
-      <p class="hint">El saldo se actualiza en el usuario backend y en el resumen.</p>
     </div>
 
     <div class="settings-card">
@@ -41,24 +43,5 @@
       </div>
       <span class="toggle toggle--on">Activas</span>
     </div>
-
-   
   </article>
 
-  <aside class="screen-shell card-surface categories-panel">
-    <h3>Ajustes categorías</h3>
-
-    <div class="settings-list">
-      @for (category of categories(); track category.nombre) {
-        <div>
-          <span>{{ category.icono }}</span>
-          <div>
-            <strong>{{ category.nombre }}</strong>
-            <p>{{ category.porcentajeLimite * 100 }}% del límite</p>
-          </div>
-          <strong>{{ category.limiteMonto | clpCurrency }}</strong>
-        </div>
-      }
-    </div>
-  </aside>
-</section>

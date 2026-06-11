@@ -18,6 +18,10 @@
   padding: 20px;
 }
 
+.mini-panel--spaced {
+  margin-top: 2%;
+}
+
 .hero-card {
   display: grid;
   gap: 18px;

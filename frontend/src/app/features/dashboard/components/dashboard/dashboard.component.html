@@ -5,7 +5,6 @@
         <p class="section-tag">Resumen de cuenta</p>
         <h2>ChanchitoApp</h2>
       </div>
-      <span class="chip chip--soft">Meta activa</span>
     </div>
 
     <div class="balance-box">
@@ -45,7 +44,7 @@
             <span class="bar-row__icon" [style.background]="category.color + '1f'">{{ category.icono }}</span>
             <div>
               <strong>{{ category.nombre }}</strong>
-              <p>{{ category.trend ?? '' }}</p>
+              <p>{{ category.trend }}</p>
             </div>
           </div>
           <div class="bar-track">
@@ -58,7 +57,7 @@
   </section>
 </section>
 
-<section class="mini-panel card-surface  " style="margin-top: 2%;">
+<section class="mini-panel card-surface mini-panel--spaced">
     <div class="panel-heading">
       <p class="section-tag">Movimientos recientes</p>
       <a routerLink="/historial">Ver histórico</a>
