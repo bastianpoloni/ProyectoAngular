@@ -18,6 +18,5 @@ export class DashboardComponent {
   protected readonly summary = this.svc.summary;
   protected readonly transactions = this.svc.transactions;
   protected readonly categories = this.svc.topCategories;
-  protected readonly previews = this.svc.previews;
   protected readonly savingsRate = this.svc.savingsRate;
 }

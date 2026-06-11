@@ -2,7 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
 
-import { BudgetCategory, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+import { User } from '../../ajustes/interfaces/user';
+import { TransactionEntry } from '../../historial/interfaces/transaction';
+import { BudgetCategory } from '../interfaces/category';
 
 @Injectable({ providedIn: 'root' })
 export class Categorias {

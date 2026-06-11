@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
-import { BudgetCategory, TimelineEntry, TransactionEntry } from '../../../interfaces/billetera.interface';
+import { BudgetCategory } from '../../categorias/interfaces/category';
+import { TimelineEntry, TransactionEntry } from '../interfaces/transaction';
 
 @Injectable({ providedIn: 'root' })
 export class Historial {

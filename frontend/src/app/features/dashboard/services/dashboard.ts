@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
-import { BudgetCategory, ScreenPreview, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+import { User } from '../../ajustes/interfaces/user';
+import { BudgetCategory } from '../../categorias/interfaces/category';
+import { TransactionEntry } from '../../historial/interfaces/transaction';
 
 @Injectable({ providedIn: 'root' })
 export class Dashboard {
@@ -47,34 +49,6 @@ export class Dashboard {
     const summary = this.summary();
     return summary.monthlyIncome > 0 ? Math.round((summary.savings / summary.monthlyIncome) * 100) : 0;
   });
-
-  private readonly screenState = signal<ScreenPreview[]>([
-    {
-      title: 'Resumen',
-      route: '/',
-      description: 'Balance, metas y gastos recientes',
-      accent: '#4a84b7'
-    },
-    {
-      title: 'Categorías',
-      route: '/categorias',
-      description: 'Organización por features y presupuesto',
-      accent: '#7bc96f'
-    },
-    {
-      title: 'Detalle',
-      route: '/detalle',
-      description: 'Vista del gasto seleccionado y distribución',
-      accent: '#f3b548'
-    },
-    {
-      title: 'Histórico',
-      route: '/historial',
-      description: 'Flujo temporal y comparación por categoría',
-      accent: '#f1a8cb'
-    }
-  ]);
-  readonly previews = computed(() => this.screenState());
 
   constructor() {
     this.loadUsers();

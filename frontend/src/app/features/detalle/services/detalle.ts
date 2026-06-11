@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
-import { BudgetCategory, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+import { User } from '../../ajustes/interfaces/user';
+import { BudgetCategory } from '../../categorias/interfaces/category';
+import { TransactionEntry } from '../../historial/interfaces/transaction';
 
 @Injectable({ providedIn: 'root' })
 export class Detalle {
