@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-
-import { BudgetCategory, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+import { CategoriaPresupuesto } from '../../categorias/interface/categoria-presupuesto.interface';
+import { Transaccion } from '../interface/transaccion.interface';
+import { Usuario } from '../../ajustes/interface/usuario.interface';
+import { RegistroLineaTiempo } from '../interface/registro-linea-tiempo.interface';
 
 const API_URL = 'http://localhost:3000';
 const UID = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2';
@@ -12,9 +14,9 @@ export class HistoryService {
   private readonly apiUrl = API_URL;
   private readonly uid = UID;
 
-  private readonly usersState = signal<User[]>([]);
-  private readonly categoriesState = signal<BudgetCategory[]>([]);
-  private readonly transactionsState = signal<TransactionEntry[]>([]);
+  private readonly usersState = signal<Usuario[]>([]);
+  private readonly categoriesState = signal<CategoriaPresupuesto[]>([]);
+  private readonly transactionsState = signal<Transaccion[]>([]);
 
   readonly timeline = computed(() => this.buildTimeline());
   readonly mode = signal<'Temporal' | 'Categoría'>('Categoría');
@@ -34,7 +36,7 @@ export class HistoryService {
   }
 
   private loadUsers(): void {
-    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+    this.http.get<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => {
         this.usersState.set([data]);
         this.fetchCategories();
@@ -45,14 +47,14 @@ export class HistoryService {
   }
 
   private fetchCategories(): void {
-    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+    this.http.get<CategoriaPresupuesto[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
       next: (data) => this.categoriesState.set(data.map((category) => this.normalizeCategory(category, this.currentUser?.presupuesto ?? 0))),
       error: (error: unknown) => console.error('Error fetching categories:', error)
     });
   }
 
   private fetchTransactions(): void {
-    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+    this.http.get<Transaccion[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
       next: (data) => this.transactionsState.set(data.map((transaction) => ({ ...transaction, fecha: new Date(transaction.fecha) }))),
       error: (error: unknown) => console.error('Error fetching transactions:', error)
     });
@@ -66,7 +68,7 @@ export class HistoryService {
     this.selectedCategory.set(category);
   }
 
-  private buildTimeline() {
+  private buildTimeline(): RegistroLineaTiempo[] {
     const days = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
     const entries = days.map((label, dayIndex) => {
       const dayOfWeek = (dayIndex + 1) % 7;
@@ -95,7 +97,7 @@ export class HistoryService {
     }));
   }
 
-  private normalizeCategory(category: BudgetCategory, budget: number): BudgetCategory {
+  private normalizeCategory(category: CategoriaPresupuesto, budget: number): CategoriaPresupuesto {
     const limiteMonto = category.limiteMonto !== undefined
       ? category.limiteMonto
       : Math.round(budget * (category.porcentajeLimite / 100));

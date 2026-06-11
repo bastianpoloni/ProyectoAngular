@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-
-import { BudgetCategory, ScreenPreview, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+import { CategoriaPresupuesto } from '../../categorias/interface/categoria-presupuesto.interface';
+import { VistaPrevia } from '../interface/vista-previa.interface';
+import { Transaccion } from '../../historial/interface/transaccion.interface';
+import { Usuario } from '../../ajustes/interface/usuario.interface';
+import { ResumenBilletera } from '../interface/resumen-billetera.interface';
 
 const API_URL = 'http://localhost:3000';
 const UID = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2';
@@ -12,9 +15,9 @@ export class DashboardService {
   private readonly apiUrl = API_URL;
   private readonly uid = UID;
 
-  private readonly usersState = signal<User[]>([]);
-  private readonly categoriesState = signal<BudgetCategory[]>([]);
-  private readonly transactionsState = signal<TransactionEntry[]>([]);
+  private readonly usersState = signal<Usuario[]>([]);
+  private readonly categoriesState = signal<CategoriaPresupuesto[]>([]);
+  private readonly transactionsState = signal<Transaccion[]>([]);
 
   readonly summary = computed(() => this.buildSummary());
   readonly transactions = computed(() => this.transactionsState());
@@ -25,7 +28,7 @@ export class DashboardService {
       .sort((left, right) => right.spent - left.spent)
       .slice(0, 3);
   });
-  readonly previews = computed<ScreenPreview[]>(() => this.buildScreenPreviews());
+  readonly previews = computed<VistaPrevia[]>(() => this.buildScreenPreviews());
   readonly savingsRate = computed(() => {
     const summary = this.summary();
     return summary.budget > 0 ? Math.round((summary.savings / summary.budget) * 100) : 0;
@@ -40,7 +43,7 @@ export class DashboardService {
   }
 
   private loadUsers(): void {
-    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+    this.http.get<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => {
         this.usersState.set([data]);
         this.fetchCategories();
@@ -51,20 +54,20 @@ export class DashboardService {
   }
 
   private fetchCategories(): void {
-    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+    this.http.get<CategoriaPresupuesto[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
       next: (data) => this.categoriesState.set(data.map((category) => this.normalizeCategory(category, this.summary().budget))),
       error: (error: unknown) => console.error('Error fetching categories:', error)
     });
   }
 
   private fetchTransactions(): void {
-    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+    this.http.get<Transaccion[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
       next: (data) => this.transactionsState.set(data.map((transaction) => ({ ...transaction, fecha: new Date(transaction.fecha) }))),
       error: (error: unknown) => console.error('Error fetching transactions:', error)
     });
   }
 
-  private buildSummary() {
+  private buildSummary(): ResumenBilletera {
     const user = this.currentUser;
     if (!user) {
       return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
@@ -86,7 +89,7 @@ export class DashboardService {
     return { balance: user.saldo, budget, spent, savings, monthlyIncome: 0 };
   }
 
-  private buildCategoryMetrics(category: BudgetCategory | undefined, transactions: TransactionEntry[], budget: number) {
+  private buildCategoryMetrics(category: CategoriaPresupuesto | undefined, transactions: Transaccion[], budget: number) {
     if (!category) {
       return {
         id: '',
@@ -110,7 +113,7 @@ export class DashboardService {
     return { ...category, spent, trend };
   }
 
-  private buildScreenPreviews(): ScreenPreview[] {
+  private buildScreenPreviews(): VistaPrevia[] {
     return [
       {
         title: 'Resumen',
@@ -139,7 +142,7 @@ export class DashboardService {
     ];
   }
 
-  private normalizeCategory(category: BudgetCategory, budget: number): BudgetCategory {
+  private normalizeCategory(category: CategoriaPresupuesto, budget: number): CategoriaPresupuesto {
     const limiteMonto = category.limiteMonto !== undefined
       ? category.limiteMonto
       : Math.round(budget * (category.porcentajeLimite / 100));

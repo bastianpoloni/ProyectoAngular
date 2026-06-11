@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { switchMap, tap } from 'rxjs';
-
-import { BudgetCategory, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+import { CategoriaPresupuesto } from '../interface/categoria-presupuesto.interface';
+import { Transaccion } from '../../historial/interface/transaccion.interface';
+import { Usuario } from '../../ajustes/interface/usuario.interface';
 
 const API_URL = 'http://localhost:3000';
 const UID = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2';
@@ -13,9 +14,9 @@ export class CategoriesService {
   private readonly apiUrl = API_URL;
   private readonly uid = UID;
 
-  private readonly usersState = signal<User[]>([]);
-  private readonly categoriesState = signal<BudgetCategory[]>([]);
-  private readonly transactionsState = signal<TransactionEntry[]>([]);
+  private readonly usersState = signal<Usuario[]>([]);
+  private readonly categoriesState = signal<CategoriaPresupuesto[]>([]);
+  private readonly transactionsState = signal<Transaccion[]>([]);
   readonly selectedCategory = signal('Comida');
 
   readonly categories = computed(() => this.categoriesState());
@@ -46,7 +47,7 @@ export class CategoriesService {
   }
 
   private loadUsers(): void {
-    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+    this.http.get<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => {
         this.usersState.set([data]);
         this.fetchCategories();
@@ -57,14 +58,14 @@ export class CategoriesService {
   }
 
   fetchCategories(): void {
-    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+    this.http.get<CategoriaPresupuesto[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
       next: (data) => this.categoriesState.set(data.map((category) => this.normalizeCategory(category, this.currentUser?.presupuesto ?? 0))),
       error: (error: unknown) => console.error('Error fetching categories:', error)
     });
   }
 
   fetchTransactions(): void {
-    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+    this.http.get<Transaccion[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
       next: (data) => this.transactionsState.set(data.map((transaction) => ({ ...transaction, fecha: new Date(transaction.fecha) }))),
       error: (error: unknown) => console.error('Error fetching transactions:', error)
     });
@@ -74,14 +75,14 @@ export class CategoriesService {
     this.selectedCategory.set(category);
   }
 
-  addCategory(category: Omit<BudgetCategory, 'id' | 'spent' | 'trend'>) {
-    return this.http.post<BudgetCategory>(`${this.apiUrl}/usuarios/${this.uid}/categorias`, category).pipe(
+  addCategory(category: Omit<CategoriaPresupuesto, 'id' | 'spent' | 'trend'>) {
+    return this.http.post<CategoriaPresupuesto>(`${this.apiUrl}/usuarios/${this.uid}/categorias`, category).pipe(
       tap(() => this.fetchCategories())
     );
   }
 
   addTransaction(transaction: any) {
-    return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
+    return this.http.post<Transaccion>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
       tap(() => this.fetchTransactions()),
       switchMap(() => this.updateBalance(transaction.monto))
     );
@@ -94,7 +95,7 @@ export class CategoriesService {
     }
 
     const newSaldo = current.saldo + amount;
-    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+    return this.http.patch<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
       tap((user) => this.usersState.set([user]))
     );
   }
@@ -127,7 +128,7 @@ export class CategoriesService {
     };
   }
 
-  private buildCategoryMetrics(category: BudgetCategory | undefined, transactions: TransactionEntry[], budget: number) {
+  private buildCategoryMetrics(category: CategoriaPresupuesto | undefined, transactions: Transaccion[], budget: number) {
     if (!category) {
       return {
         id: '',
@@ -155,7 +156,7 @@ export class CategoriesService {
     };
   }
 
-  private normalizeCategory(category: BudgetCategory, budget: number): BudgetCategory {
+  private normalizeCategory(category: CategoriaPresupuesto, budget: number): CategoriaPresupuesto {
     const limiteMonto = category.limiteMonto !== undefined
       ? category.limiteMonto
       : Math.round(budget * (category.porcentajeLimite / 100));
