@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { DashboardService } from '../../services/dashboard.service';
+import { Dashboard } from '../../services/dashboard';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,7 +13,7 @@ import { DashboardService } from '../../services/dashboard.service';
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
-  private readonly svc = inject(DashboardService);
+  private readonly svc = inject(Dashboard);
 
   protected readonly summary = this.svc.summary;
   protected readonly transactions = this.svc.transactions;

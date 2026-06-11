@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { SettingsService } from '../../services/ajustes.service';
+import { Ajustes } from '../../services/ajustes';
 
 @Component({
   selector: 'app-settings',
@@ -12,7 +12,7 @@ import { SettingsService } from '../../services/ajustes.service';
   styleUrl: './ajustes.component.css'
 })
 export class SettingsComponent {
-  private readonly svc = inject(SettingsService);
+  private readonly svc = inject(Ajustes);
 
   protected readonly summary = this.svc.summary;
   protected readonly categories = this.svc.categories;

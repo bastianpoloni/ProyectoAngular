@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { HistoryService } from '../../services/historial.service';
+import { Historial } from '../../services/historial';
 
 @Component({
   selector: 'app-history',
@@ -13,7 +13,7 @@ import { HistoryService } from '../../services/historial.service';
   styleUrl: './historial.component.css'
 })
 export class HistoryComponent {
-  private readonly svc = inject(HistoryService);
+  private readonly svc = inject(Historial);
 
   protected readonly timeline = this.svc.timeline;
   protected readonly mode = this.svc.mode;
