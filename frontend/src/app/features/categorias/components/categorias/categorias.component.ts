@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { CategoriesService } from '../../services/categorias.service';
+import { Categorias } from '../../services/categorias';
 
 @Component({
   selector: 'app-categories',
@@ -13,7 +13,7 @@ import { CategoriesService } from '../../services/categorias.service';
   styleUrl: './categorias.component.css'
 })
 export class CategoriesComponent {
-  private readonly svc = inject(CategoriesService);
+  private readonly svc = inject(Categorias);
 
   protected readonly categories = this.svc.categories;
   protected readonly selectedCategory = this.svc.selectedCategory;
@@ -42,8 +42,8 @@ export class CategoriesComponent {
     return Math.max(0, 100 - totalCurrent);
   }
 
-  get userBudget(): number {
-    return this.svc.summary.budget;
+  get userBalance(): number {
+    return this.svc.summary().balance;
   }
 
   getPreviewAmount(porcentajeStr: string): number {

@@ -2,129 +2,32 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { tap, switchMap } from 'rxjs';
 
-import {
-  BudgetCategory,
-  ScreenPreview,
-  TimelineEntry,
-  TransactionEntry,
-  User,
-  WalletSummary
-} from '../../interfaces/billetera.interface';
+import { User } from '../../ajustes/interfaces/user';
+import { TransactionEntry } from '../../historial/interfaces/transaction';
+import { BudgetCategory } from '../interfaces/category';
 
 @Injectable({ providedIn: 'root' })
-export class BilleteraService {
+export class Categorias {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:3000';
-  private readonly uid = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2'; // Real user ID from Firebase
+  private readonly uid = '335ETJFCzKMe5WKJm9e3BltRLPQ2';
 
   private readonly usersState = signal<User[]>([]);
   readonly users = computed(() => this.usersState());
   readonly currentUser = computed(() => this.usersState()[0] ?? null);
 
-  private readonly usersLoadingState = signal<boolean>(false);
-  readonly usersLoading = computed(() => this.usersLoadingState());
-
-  private readonly usersErrorState = signal<string | null>(null);
-  readonly usersError = computed(() => this.usersErrorState());
-
-  constructor() {
-    this.loadUsers();
-    this.fetchCategories();
-    this.fetchTransactions();
-  }
-
   private readonly categoriesState = signal<BudgetCategory[]>([]);
   readonly categories = computed(() => this.categoriesState());
 
-  private readonly transactionsState = signal<TransactionEntry[]>([
-    {
-      id: '1',
-      categoriaNombre: 'Comida',
-      descripcion: 'Compra en supermercado',
-      monto: -15000,
-      esIngreso: false,
-      fecha: new Date('2023-10-01'),
-    },
-    {
-      id: '2',
-      categoriaNombre: 'Transporte',
-      descripcion: 'Pasaje de bus',
-      monto: -2000,
-      esIngreso: false,
-      fecha: new Date('2023-10-02'),
-    },
-    {
-      id: '3',
-      categoriaNombre: 'Entretenimiento',
-      descripcion: 'Película en cine',
-      monto: -8000,
-      esIngreso: false,
-      fecha: new Date('2023-10-03'),
-    },
-  ]);
-  readonly transactions = computed(() => this.transactionsState());
+  private readonly transactionsState = signal<TransactionEntry[]>([]);
+  readonly allTransactions = computed(() => this.transactionsState());
 
-  readonly timeline = computed(() => {
+  readonly totalSpent = computed(() => {
     const transactions = this.transactionsState();
-    const days = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
-
-    const entries = days.map((label, dayIndex) => {
-      const dayOfWeek = (dayIndex + 1) % 7;
-      const dayTransactions = transactions.filter(t => {
-        const date = new Date(t.fecha);
-        return date.getDay() === dayOfWeek;
-      });
-
-      const income = dayTransactions
-        .filter(t => t.esIngreso)
-        .reduce((acc, t) => acc + t.monto, 0);
-
-      const expense = dayTransactions
-        .filter(t => !t.esIngreso)
-        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
-
-      return { label, income, expense };
-    });
-
-    const maxValue = Math.max(
-      1,
-      ...entries.flatMap(entry => [entry.income, entry.expense])
-    );
-
-    return entries.map(entry => ({
-      ...entry,
-      incomePercent: Math.round((entry.income / maxValue) * 100),
-      expensePercent: Math.round((entry.expense / maxValue) * 100)
-    }));
+    return transactions
+      .filter(t => !t.esIngreso)
+      .reduce((acc, t) => acc + t.monto, 0);
   });
-
-  private readonly screenState = signal<ScreenPreview[]>([
-    {
-      title: 'Resumen',
-      route: '/',
-      description: 'Balance, metas y gastos recientes',
-      accent: '#4a84b7'
-    },
-    {
-      title: 'Categorías',
-      route: '/categorias',
-      description: 'Organización por features y presupuesto',
-      accent: '#7bc96f'
-    },
-    {
-      title: 'Detalle',
-      route: '/detalle',
-      description: 'Vista del gasto seleccionado y distribución',
-      accent: '#f3b548'
-    },
-    {
-      title: 'Histórico',
-      route: '/historial',
-      description: 'Flujo temporal y comparación por categoría',
-      accent: '#f1a8cb'
-    }
-  ]);
-  readonly previews = computed(() => this.screenState());
 
   readonly summary = computed(() => {
     const user = this.usersState().length > 0 ? this.usersState()[0] : null;
@@ -147,6 +50,9 @@ export class BilleteraService {
     });
 
     const monthlyIncome = 5200; // TODO
+    const budget = 4500;
+    const savings = 680;
+    const monthlyIncome = 5200;
     return { balance, budget, spent, savings, monthlyIncome };
   });
 
@@ -178,7 +84,6 @@ export class BilleteraService {
   });
 
   readonly selectedCategory = signal('Comida');
-  readonly historyMode = signal<'Temporal' | 'Categoría'>('Categoría');
 
   readonly selectedCategoryData = computed(() => {
     const currentCategory = this.selectedCategory();
@@ -190,28 +95,21 @@ export class BilleteraService {
     return this.transactionsState().filter((item) => item.categoriaNombre === category || category === 'Todas');
   });
 
-  readonly categoryOptions = computed(() => ['Todas', ...this.categoryLabels()]);
-
-  setSelectedCategory(category: string): void {
-    this.selectedCategory.set(category);
+  // Alias compatible con lo que usaba el CategoriesService
+  get transactions() {
+    return this.filteredTransactions;
   }
 
-  setHistoryMode(mode: 'Temporal' | 'Categoría'): void {
-    this.historyMode.set(mode);
+  constructor() {
+    this.loadUsers();
+    this.fetchCategories();
+    this.fetchTransactions();
   }
 
   private loadUsers(): void {
-    this.usersLoadingState.set(true);
-    this.usersErrorState.set(null);
     this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
-      next: (data) => {
-        this.usersState.set([data]);
-        this.usersLoadingState.set(false);
-      },
-      error: (err) => {
-        this.usersErrorState.set(err.message || 'Error loading users');
-        this.usersLoadingState.set(false);
-      },
+      next: (data) => this.usersState.set([data]),
+      error: (err) => console.error('Error loading users:', err),
     });
   }
 
@@ -227,6 +125,15 @@ export class BilleteraService {
       next: (data) => this.transactionsState.set(data.map(t => ({ ...t, fecha: new Date(t.fecha) }))),
       error: (error) => console.error('Error fetching transactions:', error)
     });
+  }
+
+  setSelectedCategory(category: string): void {
+    this.selectedCategory.set(category);
+  }
+
+  // Alias para compatibilidad con la vista
+  selectCategory(category: string): void {
+    this.setSelectedCategory(category);
   }
 
   addCategory(category: Omit<BudgetCategory, 'id' | 'spent'>) {
@@ -296,13 +203,4 @@ export class BilleteraService {
     const simpleKey = icono.replace(/[_\s-]/g, '');
     return map[icono] ?? map[simpleKey] ?? rawValue;
   }
-
-  registerUser(payload: { nombre: string; email: string; password: string; saldo?: number }) {
-    return this.http.post<User>(`${this.apiUrl}/auth/register`, payload);
-  }
-
-  loginUser(payload: { email: string; password: string }) {
-    return this.http.post<User>(`${this.apiUrl}/auth/login`, payload);
-  }
 }
-
