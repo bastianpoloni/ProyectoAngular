@@ -32,22 +32,42 @@ export class Dashboard {
     if (!user) return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
     const balance = user.saldo;
     const spent = this.totalSpent();
-    const budget = 4500;
-    const savings = 680;
-    const monthlyIncome = 5200;
+    const budget = user.presupuesto || 0;
+    
+    let savings = 0;
+    const allTransactions = this.transactionsState();
+    this.categoriesState().forEach(category => {
+      const limit = category.limiteMonto !== undefined ? category.limiteMonto : Math.round(budget * (category.porcentajeLimite / 100));
+      const categorySpent = allTransactions
+        .filter(t => !t.esIngreso && t.categoriaNombre === category.nombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      
+      if (limit > categorySpent) {
+        savings += (limit - categorySpent);
+      }
+    });
+
+    const monthlyIncome = 5200; // TODO
     return { balance, budget, spent, savings, monthlyIncome };
   });
 
-  readonly topCategories = computed(() =>
-    this.categoriesState()
-      .slice()
-      .sort((left, right) => (right.spent || 0) - (left.spent || 0))
-      .slice(0, 4)
-  );
+  readonly topCategories = computed(() => {
+    const allTransactions = this.transactionsState();
+    const mapped = this.categoriesState().map(cat => {
+      const spent = allTransactions
+        .filter(t => !t.esIngreso && t.categoriaNombre === cat.nombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      return { ...cat, spent };
+    });
+
+    return mapped
+      .sort((left, right) => right.spent - left.spent)
+      .slice(0, 3);
+  });
 
   readonly savingsRate = computed(() => {
     const summary = this.summary();
-    return summary.monthlyIncome > 0 ? Math.round((summary.savings / summary.monthlyIncome) * 100) : 0;
+    return summary.budget > 0 ? Math.round((summary.savings / summary.budget) * 100) : 0;
   });
 
   constructor() {
