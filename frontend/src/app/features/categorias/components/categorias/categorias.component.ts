@@ -22,6 +22,10 @@ export class CategoriesComponent {
 
   searchTerm = signal('');
 
+  get userBudget(): number {
+    return this.svc.summary().budget;
+  }
+
   filteredCategories = computed(() => {
     const term = this.searchTerm().toLowerCase();
     const all = this.categories();
@@ -42,8 +46,8 @@ export class CategoriesComponent {
     return Math.max(0, 100 - totalCurrent);
   }
 
-  get userBudget(): number {
-    return this.svc.summary().budget;
+  get userBalance(): number {
+    return this.svc.summary().balance;
   }
 
   getPreviewAmount(porcentajeStr: string): number {

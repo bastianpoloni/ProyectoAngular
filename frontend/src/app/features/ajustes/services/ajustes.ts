@@ -103,6 +103,16 @@ export class Ajustes {
     );
   }
 
+  updateBudget(budget: number) {
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { presupuesto: budget }).pipe(
+      tap((user) => this.usersState.set([user]))
+    );
+  }
+
+  setBudget(budget: number) {
+    return this.updateBudget(budget);
+  }
+
   private normalizeCategory(category: BudgetCategory): BudgetCategory {
     const budget = this.summary().budget || 0;
     const limiteMonto = category.limiteMonto !== undefined 
