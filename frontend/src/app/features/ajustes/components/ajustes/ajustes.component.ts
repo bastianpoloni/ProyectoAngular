@@ -31,7 +31,7 @@ export class SettingsComponent {
         alert(`Se han agregado $${value} al saldo exitosamente.`);
         amountInput.value = '';
       },
-      error: (err) => {
+      error: (err: unknown) => {
         alert('Error al agregar saldo.');
         console.error('Error al agregar saldo:', err);
       }
@@ -48,7 +48,7 @@ export class SettingsComponent {
         alert(`El presupuesto mensual se ha actualizado a $${value}.`);
         budgetInput.value = '';
       },
-      error: (err) => {
+      error: (err: unknown) => {
         alert('Error al actualizar el presupuesto.');
         console.error('Error al actualizar presupuesto:', err);
       }

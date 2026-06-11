@@ -6,6 +6,11 @@ import { User } from '../../ajustes/interfaces/user';
 import { TransactionEntry } from '../../historial/interfaces/transaction';
 import { BudgetCategory } from '../interfaces/category';
 
+type CategoryDetail = BudgetCategory & {
+  spent: number;
+  trend: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class Categorias {
   private readonly http = inject(HttpClient);
@@ -25,8 +30,8 @@ export class Categorias {
   readonly totalSpent = computed(() => {
     const transactions = this.transactionsState();
     return transactions
-      .filter(t => !t.esIngreso)
-      .reduce((acc, t) => acc + t.monto, 0);
+      .filter((t) => !t.esIngreso)
+      .reduce((acc, t) => acc + Math.abs(t.monto), 0);
   });
 
   readonly summary = computed(() => {
@@ -34,25 +39,17 @@ export class Categorias {
     if (!user) return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
     const balance = user.saldo;
     const spent = this.totalSpent();
-    const budget = user.presupuesto || 0; // Presupuesto definido por el usuario
-    
-    let savings = 0;
-    const allTransactions = this.transactionsState();
-    this.categoriesState().forEach(category => {
-      const limit = category.limiteMonto !== undefined ? category.limiteMonto : Math.round(budget * (category.porcentajeLimite / 100));
-      const categorySpent = allTransactions
-        .filter(t => !t.esIngreso && t.categoriaNombre === category.nombre)
-        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
-      
-      if (limit > categorySpent) {
-        savings += (limit - categorySpent);
-      }
-    });
+    const budget = user.presupuesto ?? 0;
+    const monthlyIncome = user.ingresoMensual ?? 0;
+    const savings = this.categoriesState().reduce((acc, category) => {
+      const limit = category.limiteMonto ?? Math.round(budget * (category.porcentajeLimite / 100));
+      const categorySpent = this.transactionsState()
+        .filter((transaction) => !transaction.esIngreso && transaction.categoriaNombre === category.nombre)
+        .reduce((sum, transaction) => sum + Math.abs(transaction.monto), 0);
 
-    const monthlyIncome = 5200; // TODO
-    const budget = 4500;
-    const savings = 680;
-    const monthlyIncome = 5200;
+      return limit > categorySpent ? acc + (limit - categorySpent) : acc;
+    }, 0);
+
     return { balance, budget, spent, savings, monthlyIncome };
   });
 
@@ -71,12 +68,6 @@ export class Categorias {
   });
 
   readonly categoryLabels = computed(() => this.categoriesState().map((item) => item.nombre));
-  readonly totalSpent = computed(() => {
-    const transactions = this.transactionsState();
-    return transactions
-      .filter(t => !t.esIngreso)
-      .reduce((acc, t) => acc + t.monto, 0);
-  });
 
   readonly savingsRate = computed(() => {
     const summary = this.summary();
@@ -85,9 +76,35 @@ export class Categorias {
 
   readonly selectedCategory = signal('Comida');
 
-  readonly selectedCategoryData = computed(() => {
+  readonly selectedCategoryData = computed<CategoryDetail>(() => {
     const currentCategory = this.selectedCategory();
-    return this.categoriesState().find((item) => item.nombre === currentCategory) ?? this.categoriesState()[0];
+    const category = this.categoriesState().find((item) => item.nombre === currentCategory) ?? this.categoriesState()[0];
+
+    if (!category) {
+      return {
+        id: '',
+        nombre: '',
+        color: '#666666',
+        esIngreso: false,
+        icono: '❌',
+        porcentajeLimite: 0,
+        limiteMonto: 0,
+        spent: 0,
+        trend: ''
+      };
+    }
+
+    const spent = this.transactionsState()
+      .filter((item) => !item.esIngreso && item.categoriaNombre === category.nombre)
+      .reduce((acc, item) => acc + Math.abs(item.monto), 0);
+    const limit = category.limiteMonto ?? Math.round((this.summary().budget || 0) * (category.porcentajeLimite / 100));
+    const trend = limit > 0 ? `${Math.min(Math.round((spent / limit) * 100), 100)}% usado` : '';
+
+    return {
+      ...category,
+      spent,
+      trend
+    };
   });
 
   readonly filteredTransactions = computed(() => {
@@ -136,7 +153,7 @@ export class Categorias {
     this.setSelectedCategory(category);
   }
 
-  addCategory(category: Omit<BudgetCategory, 'id' | 'spent'>) {
+  addCategory(category: Omit<BudgetCategory, 'id' | 'spent' | 'trend'>) {
     return this.http.post<BudgetCategory>(`${this.apiUrl}/usuarios/${this.uid}/categorias`, category).pipe(
       tap(() => this.fetchCategories())
     );
@@ -164,6 +181,10 @@ export class Categorias {
     return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { presupuesto: budget }).pipe(
       tap((user) => this.usersState.set([user]))
     );
+  }
+
+  setBudget(budget: number) {
+    return this.updateBudget(budget);
   }
 
   private normalizeCategory(category: BudgetCategory): BudgetCategory {

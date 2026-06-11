@@ -22,6 +22,10 @@ export class CategoriesComponent {
 
   searchTerm = signal('');
 
+  get userBudget(): number {
+    return this.svc.summary().budget;
+  }
+
   filteredCategories = computed(() => {
     const term = this.searchTerm().toLowerCase();
     const all = this.categories();

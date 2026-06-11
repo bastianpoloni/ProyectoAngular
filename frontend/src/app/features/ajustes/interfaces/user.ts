@@ -2,6 +2,8 @@ export interface User {
   id: string;
   nombre: string;
   saldo: number;
+  presupuesto?: number;
+  ingresoMensual?: number;
 }
 
 export interface WalletSummary {
