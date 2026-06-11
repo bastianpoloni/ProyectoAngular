@@ -43,7 +43,7 @@ export class CategoriesComponent {
   }
 
   get userBudget(): number {
-    return this.svc.summary.budget;
+    return this.svc.summary().budget;
   }
 
   getPreviewAmount(porcentajeStr: string): number {

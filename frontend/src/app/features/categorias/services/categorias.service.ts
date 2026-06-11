@@ -1,48 +1,194 @@
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { switchMap, tap } from 'rxjs';
 
-import { BilleteraService } from '../../../shared/services/billetera.service';
+import { BudgetCategory, TransactionEntry, User } from '../../../interfaces/billetera.interface';
+
+const API_URL = 'http://localhost:3000';
+const UID = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2';
 
 @Injectable({ providedIn: 'root' })
 export class CategoriesService {
-  constructor(private readonly wallet: BilleteraService) {}
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = API_URL;
+  private readonly uid = UID;
 
-  get categories() {
-    return this.wallet.categories;
-  }
+  private readonly usersState = signal<User[]>([]);
+  private readonly categoriesState = signal<BudgetCategory[]>([]);
+  private readonly transactionsState = signal<TransactionEntry[]>([]);
+  readonly selectedCategory = signal('Comida');
 
-  get selectedCategory() {
-    return this.wallet.selectedCategory;
-  }
+  readonly categories = computed(() => this.categoriesState());
+  readonly allTransactions = computed(() => this.transactionsState());
+  readonly summary = computed(() => this.buildSummary());
 
-  get selectedCategoryData() {
-    return this.wallet.selectedCategoryData;
-  }
+  readonly selectedCategoryData = computed(() => {
+    const currentCategory = this.selectedCategory();
+    const category = this.categoriesState().find((item) => item.nombre === currentCategory) ?? this.categoriesState()[0];
+    return this.buildCategoryMetrics(category, this.transactionsState(), this.summary().budget);
+  });
+
+  readonly filteredTransactions = computed(() => {
+    const category = this.selectedCategory();
+    return this.transactionsState().filter((item) => item.categoriaNombre === category || category === 'Todas');
+  });
 
   get transactions() {
-    return this.wallet.filteredTransactions;
+    return this.filteredTransactions;
   }
 
-  get allTransactions() {
-    return this.wallet.transactions;
+  private get currentUser() {
+    return this.usersState()[0] ?? null;
   }
 
-  get summary() {
-    return this.wallet.summary();
+  constructor() {
+    this.loadUsers();
+  }
+
+  private loadUsers(): void {
+    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+      next: (data) => {
+        this.usersState.set([data]);
+        this.fetchCategories();
+        this.fetchTransactions();
+      },
+      error: (error: unknown) => console.error('Error loading users:', error)
+    });
+  }
+
+  fetchCategories(): void {
+    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+      next: (data) => this.categoriesState.set(data.map((category) => this.normalizeCategory(category, this.currentUser?.presupuesto ?? 0))),
+      error: (error: unknown) => console.error('Error fetching categories:', error)
+    });
+  }
+
+  fetchTransactions(): void {
+    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+      next: (data) => this.transactionsState.set(data.map((transaction) => ({ ...transaction, fecha: new Date(transaction.fecha) }))),
+      error: (error: unknown) => console.error('Error fetching transactions:', error)
+    });
   }
 
   selectCategory(category: string): void {
-    this.wallet.setSelectedCategory(category);
+    this.selectedCategory.set(category);
+  }
+
+  addCategory(category: Omit<BudgetCategory, 'id' | 'spent' | 'trend'>) {
+    return this.http.post<BudgetCategory>(`${this.apiUrl}/usuarios/${this.uid}/categorias`, category).pipe(
+      tap(() => this.fetchCategories())
+    );
   }
 
   addTransaction(transaction: any) {
-    return this.wallet.addTransaction(transaction);
-  }
-
-  addCategory(category: any) {
-    return this.wallet.addCategory(category);
+    return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
+      tap(() => this.fetchTransactions()),
+      switchMap(() => this.updateBalance(transaction.monto))
+    );
   }
 
   updateBalance(amount: number) {
-    return this.wallet.updateBalance(amount);
+    const current = this.currentUser;
+    if (!current) {
+      throw new Error('Usuario no cargado');
+    }
+
+    const newSaldo = current.saldo + amount;
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+      tap((user) => this.usersState.set([user]))
+    );
+  }
+
+  private buildSummary() {
+    const user = this.currentUser;
+    if (!user) {
+      return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
+    }
+
+    const budget = user.presupuesto ?? 0;
+    const spent = this.transactionsState()
+      .filter((transaction) => !transaction.esIngreso)
+      .reduce((acc, transaction) => acc + Math.abs(transaction.monto), 0);
+    const savings = this.categoriesState().reduce((acc, category) => {
+      const limit = category.limiteMonto ?? Math.round(budget * (category.porcentajeLimite / 100));
+      const categorySpent = this.transactionsState()
+        .filter((transaction) => !transaction.esIngreso && transaction.categoriaNombre === category.nombre)
+        .reduce((sum, transaction) => sum + Math.abs(transaction.monto), 0);
+
+      return limit > categorySpent ? acc + (limit - categorySpent) : acc;
+    }, 0);
+
+    return {
+      balance: user.saldo,
+      budget,
+      spent,
+      savings,
+      monthlyIncome: 0
+    };
+  }
+
+  private buildCategoryMetrics(category: BudgetCategory | undefined, transactions: TransactionEntry[], budget: number) {
+    if (!category) {
+      return {
+        id: '',
+        nombre: '',
+        color: '#666666',
+        esIngreso: false,
+        icono: '❌',
+        porcentajeLimite: 0,
+        limiteMonto: 0,
+        spent: 0,
+        trend: ''
+      };
+    }
+
+    const spent = transactions
+      .filter((transaction) => !transaction.esIngreso && transaction.categoriaNombre === category.nombre)
+      .reduce((acc, transaction) => acc + Math.abs(transaction.monto), 0);
+    const limit = category.limiteMonto ?? Math.round(budget * (category.porcentajeLimite / 100));
+    const trend = limit > 0 ? `${Math.min(Math.round((spent / limit) * 100), 100)}% usado` : '';
+
+    return {
+      ...category,
+      spent,
+      trend
+    };
+  }
+
+  private normalizeCategory(category: BudgetCategory, budget: number): BudgetCategory {
+    const limiteMonto = category.limiteMonto !== undefined
+      ? category.limiteMonto
+      : Math.round(budget * (category.porcentajeLimite / 100));
+
+    return {
+      ...category,
+      limiteMonto,
+      icono: this.resolveIcono(category.icono)
+    };
+  }
+
+  private resolveIcono(value: string | undefined): string {
+    const rawValue = (value ?? '').toString().trim();
+    if (!rawValue) {
+      return '❌';
+    }
+
+    const icono = rawValue.toLowerCase();
+    const map: Record<string, string> = {
+      ic_menu_preferences: '⚙️',
+      comida: '🍔',
+      alimentacion: '🍲',
+      transporte: '🚗',
+      sueldo: '💰',
+      venta: '💵',
+      entretenimiento: '🎬',
+      ocio: '🎉',
+      'remuneraciones (sueldo)': '💼',
+      remuneraciones: '💼',
+      gasto: '💸'
+    };
+
+    const simpleKey = icono.replace(/[_\s-]/g, '');
+    return map[icono] ?? map[simpleKey] ?? rawValue;
   }
 }

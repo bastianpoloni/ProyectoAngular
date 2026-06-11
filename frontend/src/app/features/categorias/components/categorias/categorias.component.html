@@ -30,10 +30,10 @@
   </article>
 
   <aside class="screen-shell card-surface detail-panel">
-    <h3>{{ selectedCategoryData()?.nombre }}</h3>
+    <h3>{{ selectedCategoryData().nombre }}</h3>
     <div class="detail-kpi">
-      <strong>{{ (selectedCategoryData()?.spent ?? 0) | clpCurrency }}</strong>
-      <span>{{ selectedCategoryData()?.trend ?? '' }}</span>
+      <strong>{{ selectedCategoryData().spent | clpCurrency }}</strong>
+      <span>{{ selectedCategoryData().trend }}</span>
     </div>
 
     <div class="transaction-actions">
