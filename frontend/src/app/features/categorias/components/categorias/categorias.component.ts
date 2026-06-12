@@ -46,8 +46,8 @@ export class CategoriesComponent {
     return Math.max(0, 100 - totalCurrent);
   }
 
-  get userBalance(): number {
-    return this.svc.summary().balance;
+  get userBudget(): number {
+    return this.svc.summary().budget;
   }
 
   getPreviewAmount(porcentajeStr: string): number {
