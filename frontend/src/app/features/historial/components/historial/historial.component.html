@@ -52,14 +52,57 @@
     <h3>Movimientos filtrados</h3>
 
     <div class="transaction-stack">
-      @for (transaction of transactions(); track transaction.descripcion + transaction.fecha) {
-        <article>
-          <div>
-            <strong>{{ transaction.descripcion }}</strong>
-            <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date }}</p>
-          </div>
-          <strong>{{ transaction.monto | clpCurrency }}</strong>
-        </article>
+      @for (transaction of transactions(); track transaction.id) {
+        @if (editingTransactionId() === transaction.id) {
+          <article class="edit-mode-article">
+            <div class="edit-inputs">
+              <input type="text" [value]="transaction.descripcion" #editDesc class="inline-input" placeholder="Descripción" />
+              <input type="number" [value]="transaction.monto" #editMonto class="inline-input" placeholder="Monto" />
+              <select [value]="transaction.categoriaNombre" #editCat class="inline-select">
+                @for (category of categories(); track category.nombre) {
+                  <option [value]="category.nombre">{{ category.nombre }}</option>
+                }
+              </select>
+            </div>
+            <div class="edit-buttons">
+              <button type="button" class="btn-save" (click)="saveEdit(transaction, editDesc.value, editMonto.value, editCat.value)" title="Guardar">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </button>
+              <button type="button" class="btn-cancel" (click)="cancelEdit()" title="Cancelar">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </article>
+        } @else {
+          <article>
+            <div>
+              <strong>{{ transaction.descripcion }}</strong>
+              <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date }}</p>
+            </div>
+            <div class="transaction-right">
+              <strong>{{ transaction.monto | clpCurrency }}</strong>
+              <div class="action-buttons">
+                <button type="button" class="btn-action btn-edit" (click)="startEdit(transaction)" title="Editar">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                </button>
+                <button type="button" class="btn-action btn-delete" (click)="deleteTransaction(transaction.id, transaction.monto)" title="Eliminar">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        }
       }
     </div>
 

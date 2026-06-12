@@ -175,6 +175,33 @@ app.post('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
     }
 });
 
+app.patch('/usuarios/:uid/transacciones/:id', validarJWT, async (req, res) => {
+    try {
+        const { uid, id } = req.params;
+        const updates = req.body;
+        if (updates.fecha) {
+            updates.fecha = admin.firestore.Timestamp.fromDate(new Date(updates.fecha));
+        }
+        await db.collection('usuario').doc(uid).collection('transaccion').doc(id).update(updates);
+        const updatedDoc = await db.collection('usuario').doc(uid).collection('transaccion').doc(id).get();
+        const data = updatedDoc.data();
+        const dateValue = data?.fecha && data.fecha.toDate ? data.fecha.toDate().toISOString() : data?.fecha;
+        res.json({ id: updatedDoc.id, ...data, fecha: dateValue });
+    } catch (error) {
+        res.status(500).send('Error al actualizar transacción: ' + error.message);
+    }
+});
+
+app.delete('/usuarios/:uid/transacciones/:id', validarJWT, async (req, res) => {
+    try {
+        const { uid, id } = req.params;
+        await db.collection('usuario').doc(uid).collection('transaccion').doc(id).delete();
+        res.json({ message: 'Transacción eliminada correctamente' });
+    } catch (error) {
+        res.status(500).send('Error al eliminar transacción: ' + error.message);
+    }
+});
+
 app.post('/auth/register', async (req, res) => {
     try {
         const { nombre, saldo = 0, email, password, presupuesto = 0, ingresoMensual = 0 } = req.body;

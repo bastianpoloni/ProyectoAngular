@@ -2,7 +2,7 @@
   <article class="screen-shell card-surface chart-panel">
     <div class="screen-head">
       <div>
-        <h2>Detalle</h2>
+        <h2>Gráfico Gastos</h2>
       </div>
       <a routerLink="/historial" class="screen-link">Ver histórico</a>
     </div>
@@ -33,26 +33,5 @@
     </div>
   </article>
 
-  <!-- <article class="screen-shell card-surface list-panel">
-    <h3>Historia de transacción</h3>
-
-    <div class="transaction-stack">
-      @for (transaction of transactions().slice(0, 4); track transaction.descripcion + transaction.fecha) {
-        <article>
-          <div>
-            <strong>{{ transaction.descripcion }}</strong>
-            <p>{{ transaction.fecha | date:'short' }}</p>
-          </div>
-          <strong [class.negative]="transaction.monto < 0" [class.positive]="transaction.monto > 0">
-            {{ transaction.monto | clpCurrency }}
-          </strong>
-        </article>
-      }
-    </div>
-
-    <div class="summary-card">
-      <strong>{{ summary().balance | clpCurrency }}</strong>
-    
-    </div>
-  </article> -->
+ 
 </section>

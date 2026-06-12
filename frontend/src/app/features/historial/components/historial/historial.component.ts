@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 
 import { DatePipe } from '@angular/common';
 
@@ -23,6 +23,8 @@ export class HistoryComponent {
   protected readonly categories = this.svc.categories;
   protected readonly transactions = this.svc.transactions;
 
+  editingTransactionId = signal<string | null>(null);
+
   setMode(mode: 'Temporal' | 'Categoría'): void {
     this.svc.setMode(mode);
   }
@@ -37,5 +39,50 @@ export class HistoryComponent {
 
   setEndDate(date: string): void {
     this.svc.endDate.set(date);
+  }
+
+  startEdit(transaction: any): void {
+    this.editingTransactionId.set(transaction.id || null);
+  }
+
+  cancelEdit(): void {
+    this.editingTransactionId.set(null);
+  }
+
+  deleteTransaction(id: string | undefined, monto: number): void {
+    if (!id) return;
+    if (confirm('¿Estás seguro de que deseas eliminar este movimiento?')) {
+      this.svc.deleteTransaction(id, monto).subscribe();
+    }
+  }
+
+  saveEdit(transaction: any, desc: string, montoStr: string, catNombre: string): void {
+    const id = transaction.id;
+    if (!id) return;
+    const montoRaw = Number(montoStr);
+    if (!desc || isNaN(montoRaw) || montoRaw === 0) {
+      alert('Por favor, ingresa una descripción válida y un monto distinto de cero.');
+      return;
+    }
+
+    const categoryObj = this.categories().find(c => c.nombre === catNombre);
+    const isIngreso = categoryObj?.esIngreso ?? false;
+    const monto = isIngreso ? Math.abs(montoRaw) : -Math.abs(montoRaw);
+
+    this.svc.updateTransaction(id, {
+      descripcion: desc,
+      monto: monto,
+      categoriaNombre: catNombre,
+      esIngreso: isIngreso,
+      fecha: transaction.fecha
+    }, transaction.monto).subscribe({
+      next: () => {
+        this.cancelEdit();
+      },
+      error: (err) => {
+        alert('Error al guardar la transacción');
+        console.error(err);
+      }
+    });
   }
 }
