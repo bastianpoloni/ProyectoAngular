@@ -173,3 +173,20 @@
 		background: rgba(74, 132, 183, 0.12);
 	}
 }
+
+.logout-btn-desktop {
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.logout-btn-desktop:hover {
+  background: rgba(239, 68, 68, 0.15);
+  transform: translateY(-1px);
+}

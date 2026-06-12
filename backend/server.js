@@ -3,7 +3,28 @@ const app = express();
 const port = 3000;
 const admin = require('firebase-admin');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'supersecreto_del_chanchito_123';
+
+const validarJWT = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Token de autenticación no proporcionado' });
+    }
+    const token = authHeader.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ message: 'Formato de token inválido' });
+    }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.usuario = decoded;
+        next();
+    } catch (error) {
+        return res.status(403).json({ message: 'Token inválido o expirado' });
+    }
+};
 
 if (!process.env.FIREBASE_CREDENTIALS_PATH) {
     throw new Error('Falta FIREBASE_CREDENTIALS_PATH en el archivo .env');
@@ -21,7 +42,7 @@ app.use(express.json());
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {
         return res.sendStatus(204);
     }
@@ -32,7 +53,7 @@ app.listen(port, () => {
     console.log(`Servidor funcionando en el puerto: ${port}`);
 });
 
-app.get('/usuarios', async (req, res) => {
+app.get('/usuarios', validarJWT, async (req, res) => {
     try {
         const snapshot = await db.collection('usuario').get();
         const data = [];
@@ -45,7 +66,7 @@ app.get('/usuarios', async (req, res) => {
     }
 });
 
-app.get('/usuarios/:uid', async (req, res) => {
+app.get('/usuarios/:uid', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;
         const doc = await db.collection('usuario').doc(uid).get();
@@ -58,7 +79,7 @@ app.get('/usuarios/:uid', async (req, res) => {
     }
 });
 
-app.patch('/usuarios/:uid', async (req, res) => {
+app.patch('/usuarios/:uid', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;
         const updates = req.body;
@@ -70,7 +91,7 @@ app.patch('/usuarios/:uid', async (req, res) => {
     }
 });
 
-app.get('/usuarios/:uid/categorias', async (req, res) => {
+app.get('/usuarios/:uid/categorias', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;
         const snapshot = await db.collection('usuario').doc(uid).collection('categoria').get();
@@ -84,7 +105,7 @@ app.get('/usuarios/:uid/categorias', async (req, res) => {
     }
 });
 
-app.get('/usuarios/:uid/transacciones', async (req, res) => {
+app.get('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;
         const snapshot = await db.collection('usuario').doc(uid).collection('transaccion')
@@ -102,7 +123,7 @@ app.get('/usuarios/:uid/transacciones', async (req, res) => {
     }
 });
 
-app.post('/usuarios/:uid/categorias', async (req, res) => {
+app.post('/usuarios/:uid/categorias', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;
         const category = req.body;
@@ -114,7 +135,7 @@ app.post('/usuarios/:uid/categorias', async (req, res) => {
     }
 });
 
-app.post('/usuarios/:uid/transacciones', async (req, res) => {
+app.post('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;
         const transaction = req.body;
@@ -165,7 +186,13 @@ app.post('/auth/login', async (req, res) => {
             return res.status(404).json({ message: 'Usuario o contraseña incorrectos' });
         }
         const doc = snapshot.docs[0];
-        res.json({ id: doc.id, ...doc.data() });
+        const userData = { id: doc.id, ...doc.data() };
+        const token = jwt.sign(
+            { id: userData.id, email: userData.email, nombre: userData.nombre },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        res.json({ token, usuario: userData });
     } catch (error) {
         res.status(500).send('Error al iniciar sesión: ' + error.message);
     }

@@ -15,7 +15,15 @@ type CategoryDetail = BudgetCategory & {
 export class Categorias {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:3000';
-  private readonly uid = '335ETJFCzKMe5WKJm9e3BltRLPQ2';
+  get uid(): string {
+    const userJson = localStorage.getItem('usuario');
+    if (userJson) {
+      try {
+        return JSON.parse(userJson).id;
+      } catch (e) {}
+    }
+    return '335ETJFCzKMe5WKJm9e3BltRLPQ2';
+  }
 
   private readonly usersState = signal<User[]>([]);
   readonly users = computed(() => this.usersState());
