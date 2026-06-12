@@ -72,7 +72,7 @@
 
     <div class="transaction-list">
       @for (transaction of transactions().slice(0, 4); track transaction.id ?? transaction.descripcion + transaction.fecha) {
-        <article class="transaction-row">
+        <article class="transaction-row" [class.category-deleted]="isCategoryDeleted(transaction.categoriaNombre)">
           <div>
             <strong>{{ transaction.descripcion }}</strong>
             <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date:'shortDate' }}</p>

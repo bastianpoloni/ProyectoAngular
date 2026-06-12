@@ -37,4 +37,11 @@ export class DashboardComponent implements OnInit {
   protected closeAddExpenseModal(): void {
     this.isAddExpenseOpen.set(false);
   }
+
+  isCategoryDeleted(catNombre: string): boolean {
+    if (!catNombre) return false;
+    const list = this.svc.categories();
+    if (list.length === 0) return false;
+    return !list.some(c => c.nombre.toLowerCase() === catNombre.toLowerCase());
+  }
 }
