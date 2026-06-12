@@ -112,4 +112,16 @@ export class CategoriesComponent {
     this.editingCategoryData.set(category);
     this.isEditingCategory = true;
   }
+
+  deleteCategory(event: Event, category: BudgetCategory): void {
+    event.stopPropagation();
+    if (confirm(`¿Estás seguro de que deseas eliminar la categoría "${category.nombre}"?`)) {
+      this.svc.deleteCategory(category.id).subscribe({
+        error: (err) => {
+          alert('Error al eliminar la categoría.');
+          console.error(err);
+        }
+      });
+    }
+  }
 }
