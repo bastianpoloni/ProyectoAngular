@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { Ajustes } from '../../services/ajustes';
+import { Ajustes } from '../../services/ajustes.service';
 
 @Component({
   selector: 'app-settings',

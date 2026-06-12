@@ -1,14 +1,14 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+
 import { DatePipe } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { Historial } from '../../services/historial';
+import { Historial } from '../../services/historial.service';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [RouterLink, ClpCurrencyPipe, DatePipe],
+  imports: [ClpCurrencyPipe, DatePipe],
   templateUrl: './historial.component.html',
   styleUrl: './historial.component.css'
 })
@@ -18,6 +18,8 @@ export class HistoryComponent {
   protected readonly timeline = this.svc.timeline;
   protected readonly mode = this.svc.mode;
   protected readonly selectedCategory = this.svc.selectedCategory;
+  protected readonly startDate = this.svc.startDate;
+  protected readonly endDate = this.svc.endDate;
   protected readonly categories = this.svc.categories;
   protected readonly transactions = this.svc.transactions;
 
@@ -27,5 +29,13 @@ export class HistoryComponent {
 
   selectCategory(category: string): void {
     this.svc.selectCategory(category);
+  }
+
+  setStartDate(date: string): void {
+    this.svc.startDate.set(date);
+  }
+
+  setEndDate(date: string): void {
+    this.svc.endDate.set(date);
   }
 }

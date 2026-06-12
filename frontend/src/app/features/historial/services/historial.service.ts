@@ -1,107 +1,143 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { CategoriaPresupuesto } from '../../categorias/interface/categoria-presupuesto.interface';
-import { Transaccion } from '../interface/transaccion.interface';
-import { Usuario } from '../../ajustes/interface/usuario.interface';
-import { RegistroLineaTiempo } from '../interface/registro-linea-tiempo.interface';
 
-const API_URL = 'http://localhost:3000';
-const UID = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2';
+import { BudgetCategory } from '../../categorias/interfaces/category';
+import { TimelineEntry, TransactionEntry } from '../interfaces/transaction';
 
 @Injectable({ providedIn: 'root' })
-export class HistoryService {
+export class Historial {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = API_URL;
-  private readonly uid = UID;
+  private readonly apiUrl = 'http://localhost:3000';
+  get uid(): string {
+    const userJson = localStorage.getItem('usuario');
+    if (userJson) {
+      try {
+        return JSON.parse(userJson).id;
+      } catch (e) {}
+    }
+    return '335ETJFCzKMe5WKJm9e3BltRLPQ2';
+  }
 
-  private readonly usersState = signal<Usuario[]>([]);
-  private readonly categoriesState = signal<CategoriaPresupuesto[]>([]);
-  private readonly transactionsState = signal<Transaccion[]>([]);
+  private readonly categoriesState = signal<BudgetCategory[]>([]);
+  readonly categories = computed(() => this.categoriesState());
 
-  readonly timeline = computed(() => this.buildTimeline());
-  readonly mode = signal<'Temporal' | 'Categoría'>('Categoría');
-  readonly selectedCategory = signal('Todas');
-  readonly categories = computed(() => ['Todas', ...this.categoriesState().map((item) => item.nombre)]);
+  private readonly transactionsState = signal<TransactionEntry[]>([]);
+  readonly startDate = signal<string>('');
+  readonly endDate = signal<string>('');
+
   readonly transactions = computed(() => {
     const category = this.selectedCategory();
-    return this.transactionsState().filter((item) => item.categoriaNombre === category || category === 'Todas');
+    const start = this.startDate();
+    const end = this.endDate();
+    let list = this.transactionsState();
+
+    if (category && category !== 'Todas') {
+      list = list.filter(t => t.categoriaNombre === category);
+    }
+
+    if (start) {
+      const startDateObj = new Date(start);
+      startDateObj.setHours(0, 0, 0, 0);
+      list = list.filter(t => new Date(t.fecha) >= startDateObj);
+    }
+
+    if (end) {
+      const endDateObj = new Date(end);
+      endDateObj.setHours(23, 59, 59, 999);
+      list = list.filter(t => new Date(t.fecha) <= endDateObj);
+    }
+
+    return list;
   });
 
-  private get currentUser() {
-    return this.usersState()[0] ?? null;
-  }
+  readonly selectedCategory = signal('Todas');
+  readonly historyMode = signal<'Temporal' | 'Categoría'>('Categoría');
 
-  constructor() {
-    this.loadUsers();
-  }
+  readonly categoryLabels = computed(() => this.categoriesState().map((item) => item.nombre));
+  readonly categoryOptions = computed(() => ['Todas', ...this.categoryLabels()]);
 
-  private loadUsers(): void {
-    this.http.get<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
-      next: (data) => {
-        this.usersState.set([data]);
-        this.fetchCategories();
-        this.fetchTransactions();
-      },
-      error: (error: unknown) => console.error('Error loading users:', error)
-    });
-  }
-
-  private fetchCategories(): void {
-    this.http.get<CategoriaPresupuesto[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
-      next: (data) => this.categoriesState.set(data.map((category) => this.normalizeCategory(category, this.currentUser?.presupuesto ?? 0))),
-      error: (error: unknown) => console.error('Error fetching categories:', error)
-    });
-  }
-
-  private fetchTransactions(): void {
-    this.http.get<Transaccion[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
-      next: (data) => this.transactionsState.set(data.map((transaction) => ({ ...transaction, fecha: new Date(transaction.fecha) }))),
-      error: (error: unknown) => console.error('Error fetching transactions:', error)
-    });
-  }
-
-  setMode(mode: 'Temporal' | 'Categoría'): void {
-    this.mode.set(mode);
-  }
-
-  selectCategory(category: string): void {
-    this.selectedCategory.set(category);
-  }
-
-  private buildTimeline(): RegistroLineaTiempo[] {
+  readonly timeline = computed(() => {
+    const transactions = this.transactions();
     const days = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
+
     const entries = days.map((label, dayIndex) => {
       const dayOfWeek = (dayIndex + 1) % 7;
-      const dayTransactions = this.transactionsState().filter((transaction) => {
-        const date = new Date(transaction.fecha);
+      const dayTransactions = transactions.filter(t => {
+        const date = new Date(t.fecha);
         return date.getDay() === dayOfWeek;
       });
 
       const income = dayTransactions
-        .filter((transaction) => transaction.esIngreso)
-        .reduce((acc, transaction) => acc + transaction.monto, 0);
+        .filter(t => t.esIngreso)
+        .reduce((acc, t) => acc + t.monto, 0);
 
       const expense = dayTransactions
-        .filter((transaction) => !transaction.esIngreso)
-        .reduce((acc, transaction) => acc + Math.abs(transaction.monto), 0);
+        .filter(t => !t.esIngreso)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
 
       return { label, income, expense };
     });
 
-    const maxValue = Math.max(1, ...entries.flatMap((entry) => [entry.income, entry.expense]));
+    const maxValue = Math.max(
+      1,
+      ...entries.flatMap(entry => [entry.income, entry.expense])
+    );
 
-    return entries.map((entry) => ({
+    return entries.map(entry => ({
       ...entry,
       incomePercent: Math.round((entry.income / maxValue) * 100),
       expensePercent: Math.round((entry.expense / maxValue) * 100)
     }));
+  });
+
+  constructor() {
+    this.fetchCategories();
+    this.fetchTransactions();
   }
 
-  private normalizeCategory(category: CategoriaPresupuesto, budget: number): CategoriaPresupuesto {
-    const limiteMonto = category.limiteMonto !== undefined
-      ? category.limiteMonto
-      : Math.round(budget * (category.porcentajeLimite / 100));
+  fetchCategories(): void {
+    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+      next: (data) => this.categoriesState.set(data.map(category => this.normalizeCategory(category))),
+      error: (error) => console.error('Error fetching categories:', error)
+    });
+  }
 
+  fetchTransactions(): void {
+    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+      next: (data) => this.transactionsState.set(data.map(t => ({ ...t, fecha: new Date(t.fecha) }))),
+      error: (error) => console.error('Error fetching transactions:', error)
+    });
+  }
+
+  setSelectedCategory(category: string): void {
+    this.selectedCategory.set(category);
+  }
+
+  // Alias para compatibilidad con la vista
+  selectCategory(category: string): void {
+    this.setSelectedCategory(category);
+  }
+
+  setHistoryMode(mode: 'Temporal' | 'Categoría'): void {
+    this.historyMode.set(mode);
+  }
+
+  // Alias para compatibilidad con la vista
+  setMode(mode: 'Temporal' | 'Categoría'): void {
+    this.setHistoryMode(mode);
+  }
+
+  // Getter para compatibilidad con HistoryService
+  get mode() {
+    return this.historyMode;
+  }
+
+  private normalizeCategory(category: BudgetCategory): BudgetCategory {
+    const budget = 4500; // static budget placeholder matching calculations
+    const limiteMonto = category.limiteMonto !== undefined 
+      ? category.limiteMonto 
+      : Math.round(budget * (category.porcentajeLimite / 100));
+    
     return {
       ...category,
       limiteMonto,
@@ -110,27 +146,31 @@ export class HistoryService {
   }
 
   private resolveIcono(value: string | undefined): string {
-    const rawValue = (value ?? '').toString().trim();
-    if (!rawValue) {
-      return '❌';
-    }
-
-    const icono = rawValue.toLowerCase();
+    const icono = (value ?? '').toString().trim().toLowerCase();
     const map: Record<string, string> = {
-      ic_menu_preferences: '⚙️',
-      comida: '🍔',
-      alimentacion: '🍲',
-      transporte: '🚗',
-      sueldo: '💰',
-      venta: '💵',
-      entretenimiento: '🎬',
-      ocio: '🎉',
+      'ic_menu_preferences': '⚙️',
+      'comida': '🍔',
+      'alimentacion': '🍲',
+      'transporte': '🚗',
+      'sueldo': '💰',
+      'venta': '💵',
+      'entretenimiento': '🎬',
+      'ocio': '🎉',
       'remuneraciones (sueldo)': '💼',
-      remuneraciones: '💼',
-      gasto: '💸'
+      'remuneraciones': '💼',
+      'gasto': '💸',
+      'default': '🔔'
     };
 
+    if (!icono) {
+      return '🔔';
+    }
+
+    if (Object.values(map).includes(icono)) {
+      return value ?? '🔔';
+    }
+
     const simpleKey = icono.replace(/[_\s-]/g, '');
-    return map[icono] ?? map[simpleKey] ?? rawValue;
+    return map[icono] ?? map[simpleKey] ?? '🔔';
   }
 }
