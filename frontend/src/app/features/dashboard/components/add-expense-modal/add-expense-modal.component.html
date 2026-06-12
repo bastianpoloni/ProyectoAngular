@@ -1,0 +1,38 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <div class="modal-content card-surface" (click)="$event.stopPropagation()">
+    <h3 style="margin: 0; font-family: var(--font-display); font-size: 1.5rem; color: black;">Agregar Gasto</h3>
+    
+    <label class="modal-field">
+      Descripción
+      <input #expenseDesc type="text" placeholder="Ej. Almuerzo" class="modal-input" />
+    </label>
+
+    <label class="modal-field">
+      Monto
+      <input #expenseAmount type="number" placeholder="Ej. 5000" class="modal-input" />
+    </label>
+
+    <label class="modal-field">
+      Categoría
+      <select #expenseCategory class="modal-input" style="background: white; color: black;">
+        @for (cat of allCategories(); track cat.nombre) {
+          <option [value]="cat.nombre">{{ cat.nombre }}</option>
+        }
+        @if (allCategories().length === 0) {
+          <option value="" disabled>Crea una categoría primero</option>
+        }
+      </select>
+    </label>
+
+    @if (errorMessage()) {
+      <span class="error-text">
+        {{ errorMessage() }}
+      </span>
+    }
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="cancel()">Cancelar</button>
+      <button type="button" class="btn-save" (click)="save(expenseDesc.value, expenseAmount.value, expenseCategory.value)">Guardar</button>
+    </div>
+  </div>
+</div>
