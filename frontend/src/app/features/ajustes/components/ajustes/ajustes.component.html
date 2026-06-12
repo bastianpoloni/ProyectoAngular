@@ -11,7 +11,7 @@
         <p>Balance base para la meta del mes</p>
       </div>
       <div class="amount-action">
-        <input #budgetInput type="number" min="1" step="1000" placeholder="Monto CLP" />
+        <input #budgetInput type="text" inputmode="numeric" placeholder="Monto" (input)="formatAmount($event)" />
         <button type="button" (click)="setBudget(budgetInput)">Guardar</button>
       </div>
       <p class="hint">Actualmente: {{ summary().budget | clpCurrency }}</p>
@@ -19,21 +19,14 @@
 
     <div class="settings-card">
       <div>
-        <strong>Usuarios backend</strong>
-        <p>Datos cargados desde la API de backend.</p>
-      </div>
-      <strong>{{ users().length || 0 }}</strong>
-      <p>{{ usersError() }}</p>
-    </div>
-
-    <div class="settings-card">
-      <div>
         <strong>Agregar presupuesto</strong>
+        <p>Incrementar el presupuesto actual disponible</p>
       </div>
       <div class="amount-action">
-        <input #amountInput type="number" min="1" step="1000" placeholder="Monto CLP" />
+        <input #amountInput type="text" inputmode="numeric" placeholder="Monto" (input)="formatAmount($event)" />
         <button type="button" (click)="addBalance(amountInput)">Agregar</button>
       </div>
+      <p class="hint">Actualmente: {{ summary().balance | clpCurrency }}</p>
     </div>
 
     <div class="settings-card">

@@ -82,10 +82,24 @@ export class HistoryComponent implements OnInit {
     this.transactionToDelete.set(null);
   }
 
+  protected formatAmount(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val) {
+      val = Number(val).toLocaleString('es-CL');
+    }
+    input.value = val;
+  }
+
+  protected formatInitialMonto(monto: number): string {
+    const absVal = Math.abs(monto);
+    return absVal > 0 ? absVal.toLocaleString('es-CL') : '';
+  }
+
   saveEdit(transaction: any, desc: string, montoStr: string, catNombre: string): void {
     const id = transaction.id;
     if (!id) return;
-    const montoRaw = Number(montoStr);
+    const montoRaw = Number(montoStr.replace(/\D/g, ''));
     if (!desc || isNaN(montoRaw) || montoRaw === 0) {
       alert('Por favor, ingresa una descripción válida y un monto distinto de cero.');
       return;

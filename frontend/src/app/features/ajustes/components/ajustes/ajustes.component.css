@@ -96,3 +96,71 @@
     align-items: start;
   }
 }
+
+/* Align settings card columns and premium styling for inputs/buttons */
+.settings-card > div:first-child {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.settings-card .amount-action {
+  flex: 0 0 260px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.settings-card .amount-action input {
+  padding: 8px 12px;
+  border: 1px solid rgba(18, 33, 46, 0.12);
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.95rem;
+  color: black;
+  width: 140px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.settings-card .amount-action input:focus {
+  border-color: var(--brand, #4a84b7);
+  box-shadow: 0 0 0 3px rgba(74, 132, 183, 0.15);
+}
+
+.settings-card .amount-action button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--brand, #4a84b7);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-card .amount-action button:hover {
+  background: var(--brand-strong, #2d6a99);
+}
+
+.settings-card .hint {
+  flex: 0 0 160px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--brand-strong);
+  margin: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .settings-card .amount-action {
+    flex: auto;
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+  .settings-card .hint {
+    flex: auto;
+    text-align: left;
+    margin-top: 4px !important;
+  }
+}

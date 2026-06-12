@@ -24,8 +24,17 @@ export class AddExpenseModalComponent implements OnInit {
     this.close.emit();
   }
 
+  protected formatAmount(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val) {
+      val = Number(val).toLocaleString('es-CL');
+    }
+    input.value = val;
+  }
+
   protected save(desc: string, amountVal: string, catName: string): void {
-    const amountNum = Number(amountVal);
+    const amountNum = Number(amountVal.replace(/\D/g, ''));
     if (!desc.trim()) {
       this.errorMessage.set('La descripción es obligatoria.');
       return;
