@@ -2,7 +2,7 @@ import { Component, inject, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ClpCurrencyPipe } from '../../../../../../shared/pipes/clp-currency.pipe';
-import { Detalle } from '../../services/detalle.service';
+import { Dashboard } from '../../../../services/dashboard.service';
 
 @Component({
   selector: 'app-detail',
@@ -12,7 +12,7 @@ import { Detalle } from '../../services/detalle.service';
   styleUrl: './detalle.component.css'
 })
 export class DetailComponent {
-  private readonly svc = inject(Detalle);
+  private readonly svc = inject(Dashboard);
 
   protected readonly categories = this.svc.categories;
   protected readonly summary = this.svc.summary;

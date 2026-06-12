@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { tap, switchMap } from 'rxjs';
 
 import { User } from '../../ajustes/interfaces/user';
 import { BudgetCategory } from '../../categorias/interfaces/category';
@@ -34,7 +35,7 @@ export class Dashboard {
     const transactions = this.transactionsState();
     return transactions
       .filter(t => !t.esIngreso)
-      .reduce((acc, t) => acc + t.monto, 0);
+      .reduce((acc, t) => acc + Math.abs(t.monto), 0);
   });
 
   readonly summary = computed(() => {
@@ -82,7 +83,7 @@ export class Dashboard {
     this.fetchTransactions();
   }
 
-  private loadUsers(): void {
+  loadUsers(): void {
     this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => this.usersState.set([data]),
       error: (err) => console.error('Error loading users:', err),
@@ -143,5 +144,23 @@ export class Dashboard {
 
     const simpleKey = icono.replace(/[_\s-]/g, '');
     return map[icono] ?? map[simpleKey] ?? '🔔';
+  }
+
+  addTransaction(transaction: Omit<TransactionEntry, 'id'>) {
+    return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
+      tap(() => this.fetchTransactions()),
+      switchMap(() => this.updateBalance(transaction.monto))
+    );
+  }
+
+  updateBalance(amount: number) {
+    const user = this.usersState()[0];
+    if (!user) {
+      throw new Error('Usuario no cargado');
+    }
+    const newSaldo = user.saldo + amount;
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+      tap((updatedUser) => this.usersState.set([updatedUser]))
+    );
   }
 }

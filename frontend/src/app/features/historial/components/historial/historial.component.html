@@ -79,7 +79,7 @@
             </div>
           </article>
         } @else {
-          <article>
+          <article [class.category-deleted]="isCategoryDeleted(transaction.categoriaNombre)">
             <div>
               <strong>{{ transaction.descripcion }}</strong>
               <p>{{ transaction.categoriaNombre }} · {{ transaction.fecha | date }}</p>
