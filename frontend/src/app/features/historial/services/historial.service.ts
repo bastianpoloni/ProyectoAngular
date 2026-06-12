@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { tap, switchMap } from 'rxjs';
 
 import { BudgetCategory } from '../../categorias/interfaces/category';
+import { User } from '../../ajustes/interfaces/user';
 import { TimelineEntry, TransactionEntry } from '../interfaces/transaction';
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +22,9 @@ export class Historial {
 
   private readonly categoriesState = signal<BudgetCategory[]>([]);
   readonly categories = computed(() => this.categoriesState());
+
+  private readonly usersState = signal<User[]>([]);
+  readonly currentUser = computed(() => this.usersState()[0] ?? null);
 
   private readonly transactionsState = signal<TransactionEntry[]>([]);
   readonly startDate = signal<string>('');
@@ -91,8 +96,41 @@ export class Historial {
   });
 
   constructor() {
+    this.loadUsers();
     this.fetchCategories();
     this.fetchTransactions();
+  }
+
+  loadUsers(): void {
+    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+      next: (data) => this.usersState.set([data]),
+      error: (err) => console.error('Error loading users:', err),
+    });
+  }
+
+  updateBalance(amount: number) {
+    const current = this.currentUser();
+    if (!current) {
+      throw new Error('Usuario no cargado');
+    }
+    const newSaldo = current.saldo + amount;
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+      tap((user) => this.usersState.set([user]))
+    );
+  }
+
+  deleteTransaction(id: string, monto: number) {
+    return this.http.delete(`${this.apiUrl}/usuarios/${this.uid}/transacciones/${id}`).pipe(
+      tap(() => this.fetchTransactions()),
+      switchMap(() => this.updateBalance(-monto))
+    );
+  }
+
+  updateTransaction(id: string, transaction: Omit<TransactionEntry, 'id'>, oldMonto: number) {
+    return this.http.patch<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones/${id}`, transaction).pipe(
+      tap(() => this.fetchTransactions()),
+      switchMap(() => this.updateBalance(transaction.monto - oldMonto))
+    );
   }
 
   fetchCategories(): void {
