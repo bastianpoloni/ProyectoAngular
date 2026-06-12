@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
@@ -14,8 +14,14 @@ import { AddExpenseModalComponent } from '../add-expense-modal/add-expense-modal
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private readonly svc = inject(Dashboard);
+
+  ngOnInit(): void {
+    this.svc.loadUsers();
+    this.svc.fetchCategories();
+    this.svc.fetchTransactions();
+  }
 
   protected readonly summary = this.svc.summary;
   protected readonly transactions = this.svc.transactions;

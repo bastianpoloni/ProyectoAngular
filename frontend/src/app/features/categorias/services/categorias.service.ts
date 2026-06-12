@@ -132,7 +132,7 @@ export class Categorias {
     this.fetchTransactions();
   }
 
-  private loadUsers(): void {
+  loadUsers(): void {
     this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => this.usersState.set([data]),
       error: (err) => console.error('Error loading users:', err),

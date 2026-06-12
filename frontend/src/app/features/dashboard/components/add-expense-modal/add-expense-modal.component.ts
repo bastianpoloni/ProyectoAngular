@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject, signal, computed } from '@angular/core';
+import { Component, EventEmitter, Output, inject, signal, computed, OnInit } from '@angular/core';
 import { Dashboard } from '../../services/dashboard.service';
 
 @Component({
@@ -8,13 +8,17 @@ import { Dashboard } from '../../services/dashboard.service';
   templateUrl: './add-expense-modal.component.html',
   styleUrl: './add-expense-modal.component.css'
 })
-export class AddExpenseModalComponent {
+export class AddExpenseModalComponent implements OnInit {
   private readonly svc = inject(Dashboard);
 
   @Output() close = new EventEmitter<void>();
 
   protected readonly errorMessage = signal('');
   protected readonly allCategories = computed(() => this.svc.categories().filter(c => !c.esIngreso));
+
+  ngOnInit(): void {
+    this.svc.fetchCategories();
+  }
 
   protected cancel(): void {
     this.close.emit();

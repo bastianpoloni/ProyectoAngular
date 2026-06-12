@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 
 import { DatePipe } from '@angular/common';
 
@@ -12,8 +12,14 @@ import { Historial } from '../../services/historial.service';
   templateUrl: './historial.component.html',
   styleUrl: './historial.component.css'
 })
-export class HistoryComponent {
+export class HistoryComponent implements OnInit {
   private readonly svc = inject(Historial);
+
+  ngOnInit(): void {
+    this.svc.loadUsers();
+    this.svc.fetchCategories();
+    this.svc.fetchTransactions();
+  }
 
   protected readonly timeline = this.svc.timeline;
   protected readonly mode = this.svc.mode;

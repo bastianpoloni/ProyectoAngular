@@ -35,7 +35,7 @@ export class Dashboard {
     const transactions = this.transactionsState();
     return transactions
       .filter(t => !t.esIngreso)
-      .reduce((acc, t) => acc + t.monto, 0);
+      .reduce((acc, t) => acc + Math.abs(t.monto), 0);
   });
 
   readonly summary = computed(() => {
@@ -83,7 +83,7 @@ export class Dashboard {
     this.fetchTransactions();
   }
 
-  private loadUsers(): void {
+  loadUsers(): void {
     this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => this.usersState.set([data]),
       error: (err) => console.error('Error loading users:', err),

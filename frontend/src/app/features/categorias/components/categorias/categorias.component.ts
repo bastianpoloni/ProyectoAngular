@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
 import { Categorias } from '../../services/categorias.service';
@@ -13,8 +13,14 @@ import { EditarCategoriaModalComponent } from '../editar-categoria-modal/editar-
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.css'
 })
-export class CategoriesComponent {
+export class CategoriesComponent implements OnInit {
   private readonly svc = inject(Categorias);
+
+  ngOnInit(): void {
+    this.svc.loadUsers();
+    this.svc.fetchCategories();
+    this.svc.fetchTransactions();
+  }
 
   protected readonly categories = this.svc.categories;
   protected readonly selectedCategory = this.svc.selectedCategory;
@@ -36,9 +42,24 @@ export class CategoriesComponent {
 
   filteredCategories = computed(() => {
     const term = this.searchTerm().toLowerCase();
-    const all = this.categories();
-    if (!term) return all;
-    return all.filter(c => c.nombre.toLowerCase().includes(term));
+    const allCats = this.categories();
+    const allTxs = this.svc.allTransactions();
+
+    const mapped = allCats.map(category => {
+      const spent = allTxs
+        .filter((t) => !t.esIngreso && t.categoriaNombre === category.nombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      const limit = category.limiteMonto || 1;
+      const percentageUsed = Math.min((spent / limit) * 100, 100);
+      return {
+        ...category,
+        spent,
+        percentageUsed
+      };
+    });
+
+    if (!term) return mapped;
+    return mapped.filter(c => c.nombre.toLowerCase().includes(term));
   });
 
   isAddingTransaction = false;
@@ -90,20 +111,6 @@ export class CategoriesComponent {
     }).subscribe(() => {
       this.isAddingTransaction = false;
     });
-  }
-
-  getUsed(category: any): number {
-    const allTxs = this.svc.allTransactions();
-    const sum = allTxs
-      .filter((t) => t.categoriaNombre === category.nombre)
-      .reduce((acc, t) => acc + Math.abs(t.monto), 0);
-    return sum;
-  }
-
-  getPercentageUsed(category: any): number {
-    const used = this.getUsed(category);
-    const limit = category.limiteMonto || 1; // Prevent division by zero
-    return Math.min((used / limit) * 100, 100);
   }
 
   // Trigger editing a category
