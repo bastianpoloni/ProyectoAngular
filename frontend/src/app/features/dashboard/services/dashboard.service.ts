@@ -26,7 +26,9 @@ export class Dashboard {
   readonly categories = computed(() => this.categoriesState());
 
   private readonly transactionsState = signal<TransactionEntry[]>([]);
-  readonly transactions = computed(() => this.transactionsState());
+  readonly transactions = computed(() => {
+    return [...this.transactionsState()].sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+  });
 
   readonly totalSpent = computed(() => {
     const transactions = this.transactionsState();
