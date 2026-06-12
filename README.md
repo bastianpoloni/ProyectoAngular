@@ -6,7 +6,7 @@ El proyecto está diseñado bajo una arquitectura limpia y modular de **Angular 
 
 ---
 
-## 🚀 Requisitos Previos
+## Requisitos Previos
 
 - **Node.js** (versión LTS recomendada)
 - **npm** (gestor de paquetes)
@@ -14,14 +14,14 @@ El proyecto está diseñado bajo una arquitectura limpia y modular de **Angular 
 
 ---
 
-## 📁 Estructura del Proyecto
+##Estructura del Proyecto
 
 - `backend/`: API REST que expone endpoints seguros de usuarios, categorías, transacciones y autenticación por JWT.
 - `frontend/`: Aplicación cliente en Angular 18+ que utiliza servicios independientes descentralizados por feature y signals para la reactividad.
 
 ---
 
-## 🔧 Configuración del Backend
+## Configuración del Backend
 
 ### 1. Variables de Entorno (.env)
 Dentro de la carpeta `backend/`, crea un archivo llamado `.env` con el siguiente contenido:
@@ -49,7 +49,7 @@ npm start
 
 ---
 
-## 💻 Configuración del Frontend
+## Configuración del Frontend
 
 ### 1. Iniciar el Frontend
 En otra ventana de la terminal, navega a la carpeta `frontend` y ejecuta:
@@ -63,7 +63,7 @@ npm start
 
 ---
 
-## 🐳 Despliegue con Docker (Recomendado)
+## Despliegue con Docker (Recomendado)
 
 El proyecto cuenta con soporte para **Docker** y **Docker Compose** para compilar y levantar tanto el frontend como el backend de forma automatizada en contenedores aislados y optimizados.
 
@@ -75,8 +75,8 @@ Dado que el contenedor de backend lee la clave privada de Firebase, asegúrate d
 1. El archivo JSON de credenciales de Firebase en la carpeta `backend/`.
 2. Un archivo `.env` en la carpeta `backend/` configurado con el nombre correcto del archivo de credenciales y tu secreto JWT:
    ```env
-   FIREBASE_CREDENTIALS_PATH=./tu-archivo-de-firebase.json
-   JWT_SECRET=tu_secreto_jwt
+   FIREBASE_CREDENTIALS_PATH=./archivo-de-firebase.json
+   JWT_SECRET=jwt_secreto
    ```
 
 ### 3. Levantar los Contenedores
@@ -107,7 +107,7 @@ docker compose down
 
 ---
 
-## 🔑 Autenticación y Cuentas de Prueba
+## Autenticación y Cuentas de Prueba
 
 La aplicación cuenta con seguridad **JWT (JSON Web Tokens)**. Todas las peticiones al backend (a excepción de Login y Registro) requieren un token de portador (`Bearer Token`) válido enviado automáticamente por el interceptor del frontend.
 
@@ -133,16 +133,10 @@ curl -X POST http://localhost:3000/auth/register \
 
 ---
 
-## 🛠️ Tecnologías y Arquitectura Utilizadas
+## Tecnologías y Arquitectura Utilizadas
 
 - **Servicios Descentralizados (Frontend):** Cada módulo/pantalla posee su propio servicio independiente (`Ajustes`, `Categorias`, `Dashboard`, `Detalle`, `Historial`) para el consumo de datos específico, eliminando el acoplamiento a servicios monolíticos.
 - **Interfaces por Feature:** Modelos y contratos de datos distribuidos modularmente en cada directorio de feature correspondiente para mayor orden y escalabilidad.
 - **Flujo de Control Moderno:** Migración total de directivas tradicionales a sintaxis nativa `@if` y `@for`.
 - **Manejo del Estado:** Uso de Angular `signal` y `computed` para la reactivación reactiva de la interfaz en tiempo real.
 - **Seguridad Angular:** `AuthGuard` para restringir el acceso a usuarios no logueados y `AuthInterceptor` para adjuntar de forma transparente el Bearer token JWT a las peticiones HTTP.
-
----
-
-## Autores
-- **Bastián Poloni**
-- **Joaquín Contreras**
