@@ -155,7 +155,7 @@ app.post('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
 
 app.post('/auth/register', async (req, res) => {
     try {
-        const { nombre, saldo = 0, email, password } = req.body;
+        const { nombre, saldo = 0, email, password, presupuesto = 0, ingresoMensual = 0 } = req.body;
         if (!nombre || !email || !password) {
             return res.status(400).json({ message: 'nombre, email y password son requeridos' });
         }
@@ -163,7 +163,7 @@ app.post('/auth/register', async (req, res) => {
         if (!usersSnapshot.empty) {
             return res.status(409).json({ message: 'El email ya está registrado' });
         }
-        const userRef = await db.collection('usuario').add({ nombre, saldo, email, password });
+        const userRef = await db.collection('usuario').add({ nombre, saldo, email, password, presupuesto, ingresoMensual });
         const userDoc = await userRef.get();
         res.status(201).json({ id: userRef.id, ...userDoc.data() });
     } catch (error) {
