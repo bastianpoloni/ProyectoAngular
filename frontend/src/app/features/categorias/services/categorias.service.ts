@@ -81,6 +81,12 @@ export class CategoriesService {
     );
   }
 
+  updateCategory(categoryId: string, category: Partial<CategoriaPresupuesto>) {
+    return this.http.patch<CategoriaPresupuesto>(`${this.apiUrl}/usuarios/${this.uid}/categorias/${categoryId}`, category).pipe(
+      tap(() => this.fetchCategories())
+    );
+  }
+
   addTransaction(transaction: any) {
     return this.http.post<Transaccion>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
       tap(() => this.fetchTransactions()),

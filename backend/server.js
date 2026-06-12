@@ -135,6 +135,18 @@ app.post('/usuarios/:uid/categorias', validarJWT, async (req, res) => {
     }
 });
 
+app.patch('/usuarios/:uid/categorias/:id', validarJWT, async (req, res) => {
+    try {
+        const { uid, id } = req.params;
+        const updates = req.body;
+        await db.collection('usuario').doc(uid).collection('categoria').doc(id).update(updates);
+        const updatedDoc = await db.collection('usuario').doc(uid).collection('categoria').doc(id).get();
+        res.json({ id: updatedDoc.id, ...updatedDoc.data() });
+    } catch (error) {
+        res.status(500).send('Error al actualizar categoría: ' + error.message);
+    }
+});
+
 app.post('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;

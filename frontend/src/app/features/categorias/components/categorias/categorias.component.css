@@ -302,3 +302,129 @@
     align-items: start;
   }
 }
+
+/* Edit and Emoji Picker Styles */
+.category-card {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.category-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-edit-card {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.category-card:hover .btn-edit-card {
+  opacity: 0.8;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.btn-edit-card:hover {
+  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.12) !important;
+  color: #111;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.modal-field-label {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.emoji-picker-container {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 4px 0;
+}
+
+.emoji-picker-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: rgba(18, 33, 46, 0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.emoji-picker-btn:hover {
+  transform: scale(1.1);
+  background: rgba(18, 33, 46, 0.1);
+}
+
+.emoji-picker-btn.active {
+  background: rgba(74, 132, 183, 0.15);
+  border-color: var(--primary, #4a84b7);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(74, 132, 183, 0.2);
+}
+
+/* Feedback al guardar */
+.btn-save {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-save.saving {
+  background: #3b6c96 !important;
+  cursor: not-allowed;
+  animation: savingPulse 1.5s infinite alternate;
+  opacity: 0.85;
+}
+
+.btn-save.success {
+  background: #2e7d32 !important;
+  color: white !important;
+  box-shadow: 0 0 16px rgba(46, 125, 50, 0.6);
+  transform: scale(1.02);
+}
+
+@keyframes savingPulse {
+  0% {
+    box-shadow: 0 0 4px rgba(74, 132, 183, 0.4);
+    filter: brightness(0.95);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(74, 132, 183, 0.8);
+    filter: brightness(1.1);
+  }
+}
+
+.btn-cancel {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cancel.canceling {
+  background: #d32f2f !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(211, 47, 47, 0.5);
+  transform: scale(0.98);
+}
+
+
+

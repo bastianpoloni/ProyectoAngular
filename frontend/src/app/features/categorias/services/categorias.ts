@@ -167,6 +167,12 @@ export class Categorias {
     );
   }
 
+  updateCategory(categoryId: string, category: Partial<BudgetCategory>) {
+    return this.http.patch<BudgetCategory>(`${this.apiUrl}/usuarios/${this.uid}/categorias/${categoryId}`, category).pipe(
+      tap(() => this.fetchCategories())
+    );
+  }
+
   addTransaction(transaction: Omit<TransactionEntry, 'id'>) {
     return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
       tap(() => this.fetchTransactions()),
