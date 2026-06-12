@@ -168,8 +168,8 @@ export class Categorias {
     );
   }
 
-  updateCategory(categoryId: string, category: Partial<CategoriaPresupuesto>) {
-    return this.http.patch<CategoriaPresupuesto>(`${this.apiUrl}/usuarios/${this.uid}/categorias/${categoryId}`, category).pipe(
+  updateCategory(categoryId: string, category: Partial<BudgetCategory>) {
+    return this.http.patch<BudgetCategory>(`${this.apiUrl}/usuarios/${this.uid}/categorias/${categoryId}`, category).pipe(
       tap(() => this.fetchCategories())
     );
   }
