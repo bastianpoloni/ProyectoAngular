@@ -3,12 +3,13 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { Dashboard } from '../../services/dashboard';
+import { Dashboard } from '../../services/dashboard.service';
+import { DetailComponent } from '../detalle/components/detalle/detalle.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, ClpCurrencyPipe, DatePipe],
+  imports: [RouterLink, ClpCurrencyPipe, DatePipe, DetailComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

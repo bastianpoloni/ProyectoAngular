@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 
-import { User } from '../../ajustes/interfaces/user';
-import { BudgetCategory } from '../../categorias/interfaces/category';
-import { TransactionEntry } from '../../historial/interfaces/transaction';
+import { User } from '../../../../ajustes/interfaces/user';
+import { BudgetCategory } from '../../../../categorias/interfaces/category';
+import { TransactionEntry } from '../../../../historial/interfaces/transaction';
 
 @Injectable({ providedIn: 'root' })
 export class Detalle {
@@ -32,7 +32,7 @@ export class Detalle {
     const transactions = this.transactionsState();
     return transactions
       .filter(t => !t.esIngreso)
-      .reduce((acc, t) => acc + t.monto, 0);
+      .reduce((acc, t) => acc + Math.abs(t.monto), 0);
   });
 
   readonly summary = computed(() => {
@@ -42,18 +42,14 @@ export class Detalle {
     const spent = this.totalSpent();
     const budget = user.presupuesto || 0;
     
-    let savings = 0;
     const allTransactions = this.transactionsState();
-    this.categoriesState().forEach(category => {
-      const limit = category.limiteMonto !== undefined ? category.limiteMonto : Math.round(budget * (category.porcentajeLimite / 100));
+    const categoriesSpent = this.categoriesState().reduce((sum, category) => {
       const categorySpent = allTransactions
         .filter(t => !t.esIngreso && t.categoriaNombre === category.nombre)
         .reduce((acc, t) => acc + Math.abs(t.monto), 0);
-      
-      if (limit > categorySpent) {
-        savings += (limit - categorySpent);
-      }
-    });
+      return sum + categorySpent;
+    }, 0);
+    const savings = budget - categoriesSpent;
 
     const monthlyIncome = 5200; // TODO
     return { balance, budget, spent, savings, monthlyIncome };
