@@ -63,6 +63,11 @@ export class CategoriesComponent {
   isCancelingAdd = signal(false);
   isCancelingEdit = signal(false);
 
+  // Delete category states
+  isConfirmingDelete = signal(false);
+  categoryToDelete = signal<BudgetCategory | null>(null);
+  isDeleting = signal(false);
+
   get userBudget(): number {
     return this.svc.summary().budget;
   }
@@ -331,5 +336,43 @@ export class CategoriesComponent {
         console.error('Error al guardar la categoría:', err);
       }
     });
+  }
+
+  deleteCategory(event: Event, category: BudgetCategory): void {
+    event.stopPropagation(); // Stop card selection click
+    this.categoryToDelete.set(category);
+    this.isConfirmingDelete.set(true);
+  }
+
+  confirmDeleteCategory(): void {
+    const category = this.categoryToDelete();
+    if (!category || !category.id) return;
+
+    this.isDeleting.set(true);
+    this.svc.deleteCategory(category.id).subscribe({
+      next: () => {
+        // If the deleted category was currently selected, select another one
+        if (this.svc.selectedCategory() === category.nombre) {
+          const remaining = this.svc.categories().filter(c => c.id !== category.id);
+          if (remaining.length > 0) {
+            this.svc.selectCategory(remaining[0].nombre);
+          } else {
+            this.svc.selectCategory('');
+          }
+        }
+        this.closeDeleteModal();
+      },
+      error: (err) => {
+        alert('Error al eliminar la categoría.');
+        console.error('Error deleting category:', err);
+        this.isDeleting.set(false);
+      }
+    });
+  }
+
+  closeDeleteModal(): void {
+    this.isConfirmingDelete.set(false);
+    this.categoryToDelete.set(null);
+    this.isDeleting.set(false);
   }
 }

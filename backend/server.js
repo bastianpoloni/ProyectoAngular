@@ -147,6 +147,16 @@ app.patch('/usuarios/:uid/categorias/:id', validarJWT, async (req, res) => {
     }
 });
 
+app.delete('/usuarios/:uid/categorias/:id', validarJWT, async (req, res) => {
+    try {
+        const { uid, id } = req.params;
+        await db.collection('usuario').doc(uid).collection('categoria').doc(id).delete();
+        res.json({ message: 'Categoría eliminada con éxito' });
+    } catch (error) {
+        res.status(500).send('Error al eliminar categoría: ' + error.message);
+    }
+});
+
 app.post('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
     try {
         const { uid } = req.params;

@@ -173,6 +173,12 @@ export class Categorias {
     );
   }
 
+  deleteCategory(categoryId: string) {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/usuarios/${this.uid}/categorias/${categoryId}`).pipe(
+      tap(() => this.fetchCategories())
+    );
+  }
+
   addTransaction(transaction: Omit<TransactionEntry, 'id'>) {
     return this.http.post<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`, transaction).pipe(
       tap(() => this.fetchTransactions()),

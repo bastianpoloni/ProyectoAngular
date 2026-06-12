@@ -317,7 +317,7 @@
 .btn-edit-card {
   position: absolute;
   top: 12px;
-  right: 12px;
+  right: 46px;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -333,9 +333,36 @@
   z-index: 10;
 }
 
-.category-card:hover .btn-edit-card {
+.btn-delete-card {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(239, 68, 68, 0.08);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.category-card:hover .btn-edit-card,
+.category-card:hover .btn-delete-card {
   opacity: 0.8;
+}
+
+.category-card:hover .btn-edit-card {
   background: rgba(0, 0, 0, 0.08);
+}
+
+.category-card:hover .btn-delete-card {
+  background: rgba(239, 68, 68, 0.14);
 }
 
 .btn-edit-card:hover {
@@ -343,6 +370,14 @@
   background: rgba(0, 0, 0, 0.12) !important;
   color: #111;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  opacity: 1 !important;
+}
+
+.btn-delete-card:hover {
+  transform: scale(1.1);
+  background: rgba(239, 68, 68, 0.22) !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+  opacity: 1 !important;
 }
 
 .modal-field-label {
@@ -425,6 +460,40 @@
   box-shadow: 0 0 12px rgba(211, 47, 47, 0.5);
   transform: scale(0.98);
 }
+.btn-save.btn-danger {
+  background: #ef4444 !important;
+}
 
+.btn-save.btn-danger:hover {
+  background: #dc2626 !important;
+}
 
+.btn-save.btn-danger.saving {
+  background: #b91c1c !important;
+}
 
+.delete-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.delete-modal-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+  animation: pulseWarning 2s infinite ease-in-out;
+}
+
+.delete-modal p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 8px 0 16px 0;
+}
+
+@keyframes pulseWarning {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4)); }
+  100% { transform: scale(1); }
+}
