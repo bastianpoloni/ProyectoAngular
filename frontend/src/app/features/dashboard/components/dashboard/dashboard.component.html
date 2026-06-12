@@ -3,8 +3,14 @@
     <div class="hero-card__header">
       <div>
         <p class="section-tag">Resumen de cuenta</p>
-        <h2>ChanchitoApp</h2>
       </div>
+      <button type="button" class="btn-add-expense" (click)="openAddExpenseModal()" title="Agregar Gasto">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Agregar Gasto</span>
+      </button>
     </div>
 
     <div class="balance-box">
@@ -78,3 +84,7 @@
       }
     </div>
   </section>
+
+@if (isAddExpenseOpen()) {
+  <app-add-expense-modal (close)="closeAddExpenseModal()"></app-add-expense-modal>
+}

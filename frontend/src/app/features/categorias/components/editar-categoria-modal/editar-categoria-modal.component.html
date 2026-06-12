@@ -1,0 +1,62 @@
+<div class="modal-backdrop">
+  <div class="modal-content card-surface">
+    <h3>Editar Categoría</h3>
+    
+    <label class="modal-field">
+      Categoría Predefinida
+      <select #editPredef class="modal-input" (change)="onEditPredefinedCategoryChange(editPredef.value)">
+        @for (pre of predefinedCategories; track pre.nombre) {
+          <option [value]="pre.nombre" [selected]="selectedEditPredefinedName() === pre.nombre">{{ pre.nombre }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="modal-field">
+      Nombre
+      <input #editNombre type="text" [value]="category.nombre" class="modal-input" placeholder="Ej: Comida">
+    </label>
+    
+    <label class="modal-field">
+      <div class="modal-range-header">
+        <span>Porcentaje Límite ({{ editPorcentaje.value }}%)</span>
+        <strong>{{ getPreviewAmount(editPorcentaje.value) | clpCurrency }}</strong>
+      </div>
+      <span class="modal-range-hint">Máx disponible: {{ maxPorcentajePermitidoEdicion }}%</span>
+      <input #editPorcentaje type="range" min="0" [max]="maxPorcentajePermitidoEdicion" [value]="category.porcentajeLimite" class="modal-slider" (input)="null">
+    </label>
+    
+    <div class="modal-field">
+      <span class="modal-field-label">Selecciona un Emoji</span>
+      <div class="emoji-picker-container">
+        @for (emoji of getEmojisForCategory(selectedEditPredefinedName()); track emoji) {
+          <button type="button" 
+                  class="emoji-picker-btn" 
+                  [class.active]="selectedEditEmoji() === emoji"
+                  (click)="selectedEditEmoji.set(emoji)">
+            {{ emoji }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <label class="modal-field">
+      Color
+      <input #editColor type="color" [value]="category.color" class="modal-color-input">
+    </label>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" [class.canceling]="isCancelingEdit()" [disabled]="isSavingEdit() || saveSuccessEdit() || isCancelingEdit()" (click)="cancelEdit()">
+        {{ isCancelingEdit() ? 'Cancelando...' : 'Cancelar' }}
+      </button>
+      <button type="button" class="btn-save" [class.saving]="isSavingEdit()" [class.success]="saveSuccessEdit()" [disabled]="isSavingEdit() || saveSuccessEdit() || isCancelingEdit()" (click)="saveEditedCategory(editNombre.value, editPorcentaje.value, selectedEditEmoji(), editColor.value)">
+        @if (saveSuccessEdit()) {
+          ¡Guardado! ✓
+        } @else if (isSavingEdit()) {
+          Guardando...
+        } @else {
+          Guardar
+        }
+      </button>
+    </div>
+  </div>
+</div>

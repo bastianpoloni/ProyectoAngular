@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # La ruta del archivo de credenciales de Firebase dentro del contenedor
+      - FIREBASE_CREDENTIALS_PATH=./chanchitoapp-cbf30-firebase-adminsdk-fbsvc-221fa096f3.json
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always

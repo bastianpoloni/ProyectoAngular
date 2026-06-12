@@ -63,6 +63,50 @@ npm start
 
 ---
 
+## 🐳 Despliegue con Docker (Recomendado)
+
+El proyecto cuenta con soporte para **Docker** y **Docker Compose** para compilar y levantar tanto el frontend como el backend de forma automatizada en contenedores aislados y optimizados.
+
+### 1. Requisitos Previos
+- Tener instalado [Docker Desktop](https://www.docker.com/products/docker-desktop/) ejecutándose en tu sistema.
+
+### 2. Configuración de Credenciales
+Dado que el contenedor de backend lee la clave privada de Firebase, asegúrate de tener:
+1. El archivo JSON de credenciales de Firebase en la carpeta `backend/`.
+2. Un archivo `.env` en la carpeta `backend/` configurado con el nombre correcto del archivo de credenciales y tu secreto JWT:
+   ```env
+   FIREBASE_CREDENTIALS_PATH=./tu-archivo-de-firebase.json
+   JWT_SECRET=tu_secreto_jwt
+   ```
+
+### 3. Levantar los Contenedores
+Desde la raíz del proyecto (donde se encuentra `docker-compose.yml`), ejecuta:
+
+```bash
+# Construir imágenes y levantar servicios en segundo plano (detached)
+docker compose up --build -d
+```
+
+*Esto compilará el frontend en modo de producción, configurará Nginx para servir los archivos estáticos y arrancará el servidor de Node en segundo plano.*
+
+### 4. Enlaces de Acceso
+- **Frontend (Aplicación):** [http://localhost](http://localhost)
+- **Backend (API):** [http://localhost:3000/usuarios](http://localhost:3000/usuarios)
+
+### 5. Comandos Útiles de Mantenimiento
+```bash
+# Ver estado de los contenedores
+docker compose ps
+
+# Ver registros/logs en tiempo real
+docker compose logs -f
+
+# Detener y limpiar los contenedores y redes creadas
+docker compose down
+```
+
+---
+
 ## 🔑 Autenticación y Cuentas de Prueba
 
 La aplicación cuenta con seguridad **JWT (JSON Web Tokens)**. Todas las peticiones al backend (a excepción de Login y Registro) requieren un token de portador (`Bearer Token`) válido enviado automáticamente por el interceptor del frontend.

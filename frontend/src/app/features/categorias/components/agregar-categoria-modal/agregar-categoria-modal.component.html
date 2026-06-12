@@ -1,0 +1,67 @@
+<div class="modal-backdrop">
+  <div class="modal-content card-surface">
+    <h3>Agregar Categoría</h3>
+    
+    <label class="modal-field">
+      Categoría Predefinida
+      <select #addPredef class="modal-input" (change)="onAddPredefinedCategoryChange(addPredef.value)">
+        @for (pre of predefinedCategories; track pre.nombre) {
+          <option [value]="pre.nombre">{{ pre.nombre }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="modal-field">
+      Nombre Personalizado
+      <input #catNombre type="text" [value]="selectedAddPredefinedName()" class="modal-input" placeholder="Ej: Almuerzo">
+    </label>
+    
+    <label class="modal-field">
+      <div class="modal-range-header">
+        <span>Porcentaje Límite ({{ catPorcentaje.value }}%)</span>
+        <strong>{{ getPreviewAmount(catPorcentaje.value) | clpCurrency }}</strong>
+      </div>
+      <span class="modal-range-hint">Máx disponible: {{ maxPorcentajePermitido }}%</span>
+      <input #catPorcentaje type="range" min="0" [max]="maxPorcentajePermitido" value="0" class="modal-slider" (input)="null">
+    </label>
+    
+    <label class="modal-field-row">
+      <input #catEsIngreso type="checkbox">
+      Es Ingreso
+    </label>
+
+    <div class="modal-field">
+      <span class="modal-field-label">Selecciona un Emoji</span>
+      <div class="emoji-picker-container">
+        @for (emoji of getEmojisForCategory(selectedAddPredefinedName()); track emoji) {
+          <button type="button" 
+                  class="emoji-picker-btn" 
+                  [class.active]="selectedAddEmoji() === emoji"
+                  (click)="selectedAddEmoji.set(emoji)">
+            {{ emoji }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <label class="modal-field">
+      Color
+      <input #catColor type="color" value="#4a84b7" class="modal-color-input">
+    </label>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" [class.canceling]="isCancelingAdd()" [disabled]="isSavingAdd() || saveSuccessAdd() || isCancelingAdd()" (click)="cancelAdd()">
+        {{ isCancelingAdd() ? 'Cancelando...' : 'Cancelar' }}
+      </button>
+      <button type="button" class="btn-save" [class.saving]="isSavingAdd()" [class.success]="saveSuccessAdd()" [disabled]="isSavingAdd() || saveSuccessAdd() || isCancelingAdd()" (click)="addCategory(catNombre.value, catPorcentaje.value, catEsIngreso.checked, selectedAddEmoji(), catColor.value)">
+        @if (saveSuccessAdd()) {
+          ¡Guardado! ✓
+        } @else if (isSavingAdd()) {
+          Guardando...
+        } @else {
+          Guardar
+        }
+      </button>
+    </div>
+  </div>
+</div>
