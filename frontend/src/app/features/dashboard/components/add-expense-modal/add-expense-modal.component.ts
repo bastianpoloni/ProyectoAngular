@@ -39,6 +39,18 @@ export class AddExpenseModalComponent implements OnInit {
       return;
     }
 
+    const category = this.svc.categories().find(c => c.nombre === catName);
+    if (category) {
+      const spent = this.svc.transactions()
+        .filter(t => !t.esIngreso && t.categoriaNombre === catName)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      const remaining = (category.limiteMonto ?? 0) - spent;
+      if (amountNum > remaining) {
+        this.errorMessage.set('El monto ingresado excede el presupuesto disponible de la categoría.');
+        return;
+      }
+    }
+
     this.svc.addTransaction({
       categoriaNombre: catName,
       descripcion: desc.trim(),
@@ -51,7 +63,7 @@ export class AddExpenseModalComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error saving expense:', err);
-        this.errorMessage.set('Error al guardar el gasto. Intenta de nuevo.');
+        this.errorMessage.set(err.error?.message || 'Error al guardar el gasto. Intenta de nuevo.');
       }
     });
   }

@@ -28,6 +28,8 @@ export class CategoriesComponent implements OnInit {
   protected readonly transactions = this.svc.transactions;
 
   searchTerm = signal('');
+  budgetErrorMessage = signal<string | null>(null);
+  categoryToDelete = signal<BudgetCategory | null>(null);
 
   // Add category states
   isAddingCategory = false;
@@ -102,14 +104,30 @@ export class CategoriesComponent implements OnInit {
     const isIngreso = this.selectedCategoryData().esIngreso ?? false;
     const monto = isIngreso ? Math.abs(montoRaw) : -Math.abs(montoRaw);
 
+    if (!isIngreso) {
+      const detail = this.selectedCategoryData();
+      const limit = detail.limiteMonto ?? 0;
+      const spent = detail.spent ?? 0;
+      const remaining = limit - spent;
+      if (montoRaw > remaining) {
+        this.budgetErrorMessage.set('El monto ingresado excede el presupuesto disponible de la categoría.');
+        return;
+      }
+    }
+
     this.svc.addTransaction({
       categoriaNombre: this.selectedCategory(),
       descripcion: desc,
       monto: monto,
       esIngreso: isIngreso,
       fecha: new Date()
-    }).subscribe(() => {
-      this.isAddingTransaction = false;
+    }).subscribe({
+      next: () => {
+        this.isAddingTransaction = false;
+      },
+      error: (err) => {
+        this.budgetErrorMessage.set(err.error?.message || 'Error al guardar la transacción.');
+      }
     });
   }
 
@@ -122,13 +140,26 @@ export class CategoriesComponent implements OnInit {
 
   deleteCategory(event: Event, category: BudgetCategory): void {
     event.stopPropagation();
-    if (confirm(`¿Estás seguro de que deseas eliminar la categoría "${category.nombre}"?`)) {
+    this.categoryToDelete.set(category);
+  }
+
+  confirmDeleteCategory(): void {
+    const category = this.categoryToDelete();
+    if (category) {
       this.svc.deleteCategory(category.id).subscribe({
+        next: () => {
+          this.categoryToDelete.set(null);
+        },
         error: (err) => {
-          alert('Error al eliminar la categoría.');
+          this.budgetErrorMessage.set('Error al eliminar la categoría.');
           console.error(err);
+          this.categoryToDelete.set(null);
         }
       });
     }
+  }
+
+  closeDeleteModal(): void {
+    this.categoryToDelete.set(null);
   }
 }

@@ -30,6 +30,8 @@ export class HistoryComponent implements OnInit {
   protected readonly transactions = this.svc.transactions;
 
   editingTransactionId = signal<string | null>(null);
+  budgetErrorMessage = signal<string | null>(null);
+  transactionToDelete = signal<{ id: string, monto: number } | null>(null);
 
   setMode(mode: 'Temporal' | 'Categoría'): void {
     this.svc.setMode(mode);
@@ -57,9 +59,27 @@ export class HistoryComponent implements OnInit {
 
   deleteTransaction(id: string | undefined, monto: number): void {
     if (!id) return;
-    if (confirm('¿Estás seguro de que deseas eliminar este movimiento?')) {
-      this.svc.deleteTransaction(id, monto).subscribe();
+    this.transactionToDelete.set({ id, monto });
+  }
+
+  confirmDeleteTransaction(): void {
+    const tx = this.transactionToDelete();
+    if (tx) {
+      this.svc.deleteTransaction(tx.id, tx.monto).subscribe({
+        next: () => {
+          this.transactionToDelete.set(null);
+        },
+        error: (err) => {
+          alert('Error al eliminar el movimiento.');
+          console.error(err);
+          this.transactionToDelete.set(null);
+        }
+      });
     }
+  }
+
+  closeDeleteModal(): void {
+    this.transactionToDelete.set(null);
   }
 
   saveEdit(transaction: any, desc: string, montoStr: string, catNombre: string): void {
@@ -75,6 +95,17 @@ export class HistoryComponent implements OnInit {
     const isIngreso = categoryObj?.esIngreso ?? false;
     const monto = isIngreso ? Math.abs(montoRaw) : -Math.abs(montoRaw);
 
+    if (!isIngreso && categoryObj) {
+      const spent = this.transactions()
+        .filter(t => t.id !== transaction.id && !t.esIngreso && t.categoriaNombre === catNombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      const remaining = (categoryObj.limiteMonto ?? 0) - spent;
+      if (montoRaw > remaining) {
+        this.budgetErrorMessage.set('El monto ingresado excede el presupuesto disponible de la categoría.');
+        return;
+      }
+    }
+
     this.svc.updateTransaction(id, {
       descripcion: desc,
       monto: monto,
@@ -86,7 +117,7 @@ export class HistoryComponent implements OnInit {
         this.cancelEdit();
       },
       error: (err) => {
-        alert('Error al guardar la transacción');
+        this.budgetErrorMessage.set(err.error?.message || 'Error al guardar la transacción.');
         console.error(err);
       }
     });
