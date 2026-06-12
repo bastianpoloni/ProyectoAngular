@@ -27,7 +27,7 @@ El proyecto está diseñado bajo una arquitectura limpia y modular de **Angular 
 Dentro de la carpeta `backend/`, crea un archivo llamado `.env` con el siguiente contenido:
 
 ```env
-FIREBASE_CREDENTIALS_PATH=./nombre-de-tu-archivo-firebase.json
+FIREBASE_CREDENTIALS_PATH=./archivo-firebase.json
 JWT_SECRET=supersecreto_del_chanchito_123
 ```
 
