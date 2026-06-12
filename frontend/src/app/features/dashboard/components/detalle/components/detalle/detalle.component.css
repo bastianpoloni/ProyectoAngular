@@ -18,6 +18,15 @@
   padding: 20px;
 }
 
+.section-tag {
+  margin: 0;
+  color: var(--brand-strong);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
 .screen-head {
   display: flex;
   align-items: start;
