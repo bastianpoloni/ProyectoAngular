@@ -3,76 +3,193 @@
     <header class="login-header">
       <img src="icon.png" alt="ChanchitoApp Icon" class="login-logo">
       <h1>ChanchitoApp</h1>
-      <p>Controla tus finanzas personales con inteligencia</p>
     </header>
 
     <main class="login-card">
-      <h2>Iniciar Sesión</h2>
-      <p class="subtitle">Ingresa tus credenciales para acceder a tu billetera</p>
+      @if (!isRegisterMode) {
+        <h2>Iniciar Sesión</h2>
+        <p class="subtitle">Ingresa tus credenciales para acceder a tu billetera</p>
 
-      <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off">
-        
-        <div class="form-group" [class.has-error]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
-          <label for="email">Correo Electrónico</label>
-          <div class="input-wrapper">
-            <span class="input-icon">✉️</span>
-            <input 
-              id="email" 
-              type="email" 
-              formControlName="email" 
-              placeholder="ejemplo@correo.com"
-              required
-            >
+        <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off">
+          
+          <div class="form-group" [class.has-error]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+            <label for="email">Correo Electrónico</label>
+            <div class="input-wrapper">
+              <input 
+                id="email" 
+                type="email" 
+                formControlName="email" 
+                placeholder="ejemplo@correo.com"
+                required
+              >
+            </div>
+            @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['required']) {
+              <span class="error-text">El correo electrónico es requerido.</span>
+            }
+            @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['email']) {
+              <span class="error-text">Ingresa un correo electrónico válido.</span>
+            }
           </div>
-          @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['required']) {
-            <span class="error-text">El correo electrónico es requerido.</span>
+
+          <div class="form-group" [class.has-error]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+            <label for="password">Contraseña</label>
+            <div class="input-wrapper">
+              <input 
+                id="password" 
+                type="password" 
+                formControlName="password" 
+                placeholder="••••••••"
+                required
+              >
+            </div>
+            @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']) {
+              <span class="error-text">La contraseña es requerida.</span>
+            }
+            @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['minlength']) {
+              <span class="error-text">La contraseña debe tener al menos 6 caracteres.</span>
+            }
+          </div>
+
+          @if (errorMessage) {
+            <div class="alert-error">
+              <span class="alert-icon">⚠️</span>
+              <span class="alert-message">{{ errorMessage }}</span>
+            </div>
           }
-          @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['email']) {
-            <span class="error-text">Ingresa un correo electrónico válido.</span>
-          }
+
+          <button type="submit" class="submit-btn" [disabled]="isLoading">
+            @if (isLoading) {
+              <span class="spinner"></span>
+              <span>Iniciando sesión...</span>
+            } @else {
+              <span>Ingresar</span>
+            }
+          </button>
+        </form>
+
+        <div class="toggle-link-container">
+          <p>¿No tienes cuenta? <button type="button" class="link-btn" (click)="toggleMode()">Regístrate aquí</button></p>
         </div>
+      } @else {
+        <h2>Crear Cuenta</h2>
+        <p class="subtitle">Regístrate gratis para comenzar a controlar tus gastos</p>
 
-        <div class="form-group" [class.has-error]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
-          <label for="password">Contraseña</label>
-          <div class="input-wrapper">
-            <span class="input-icon">🔒</span>
-            <input 
-              id="password" 
-              type="password" 
-              formControlName="password" 
-              placeholder="••••••••"
-              required
-            >
+        <form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
+          
+          <div class="form-group" [class.has-error]="registerForm.get('nombre')?.touched && registerForm.get('nombre')?.invalid">
+            <label for="reg-nombre">Nombre Completo</label>
+            <div class="input-wrapper">
+              <input 
+                id="reg-nombre" 
+                type="text" 
+                formControlName="nombre" 
+                placeholder="Tu Nombre"
+                required
+              >
+            </div>
+            @if (registerForm.get('nombre')?.touched && registerForm.get('nombre')?.errors?.['required']) {
+              <span class="error-text">El nombre es requerido.</span>
+            }
           </div>
-          @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']) {
-            <span class="error-text">La contraseña es requerida.</span>
+
+          <div class="form-group" [class.has-error]="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+            <label for="reg-email">Correo Electrónico</label>
+            <div class="input-wrapper">
+              <input 
+                id="reg-email" 
+                type="email" 
+                formControlName="email" 
+                placeholder="correo@ejemplo.com"
+                required
+              >
+            </div>
+            @if (registerForm.get('email')?.touched && registerForm.get('email')?.errors?.['required']) {
+              <span class="error-text">El correo electrónico es requerido.</span>
+            }
+            @if (registerForm.get('email')?.touched && registerForm.get('email')?.errors?.['email']) {
+              <span class="error-text">Ingresa un correo electrónico válido.</span>
+            }
+          </div>
+
+          <div class="form-group" [class.has-error]="registerForm.get('password')?.touched && registerForm.get('password')?.invalid">
+            <label for="reg-password">Contraseña</label>
+            <div class="input-wrapper">
+              <input 
+                id="reg-password" 
+                type="password" 
+                formControlName="password" 
+                placeholder="••••••••"
+                required
+              >
+            </div>
+            @if (registerForm.get('password')?.touched && registerForm.get('password')?.errors?.['required']) {
+              <span class="error-text">La contraseña es requerida.</span>
+            }
+            @if (registerForm.get('password')?.touched && registerForm.get('password')?.errors?.['minlength']) {
+              <span class="error-text">La contraseña debe tener al menos 6 caracteres.</span>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" [class.has-error]="registerForm.get('saldo')?.touched && registerForm.get('saldo')?.invalid">
+              <label for="reg-saldo">Saldo Inicial ($)</label>
+              <div class="input-wrapper">
+                <input 
+                  id="reg-saldo" 
+                  type="number" 
+                  formControlName="saldo" 
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="form-group" [class.has-error]="registerForm.get('presupuesto')?.touched && registerForm.get('presupuesto')?.invalid">
+              <label for="reg-presupuesto">Presupuesto ($)</label>
+              <div class="input-wrapper">
+                <input 
+                  id="reg-presupuesto" 
+                  type="number" 
+                  formControlName="presupuesto" 
+                  required
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" [class.has-error]="registerForm.get('ingresoMensual')?.touched && registerForm.get('ingresoMensual')?.invalid">
+            <label for="reg-ingreso">Ingreso Mensual ($)</label>
+            <div class="input-wrapper">
+              <input 
+                id="reg-ingreso" 
+                type="number" 
+                formControlName="ingresoMensual" 
+                required
+              >
+            </div>
+          </div>
+
+          @if (errorMessage) {
+            <div class="alert-error">
+              <span class="alert-icon">⚠️</span>
+              <span class="alert-message">{{ errorMessage }}</span>
+            </div>
           }
-          @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['minlength']) {
-            <span class="error-text">La contraseña debe tener al menos 6 caracteres.</span>
-          }
+
+          <button type="submit" class="submit-btn" [disabled]="isLoading">
+            @if (isLoading) {
+              <span class="spinner"></span>
+              <span>Registrando...</span>
+            } @else {
+              <span>Registrarme</span>
+            }
+          </button>
+        </form>
+
+        <div class="toggle-link-container">
+          <p>¿Ya tienes cuenta? <button type="button" class="link-btn" (click)="toggleMode()">Inicia sesión aquí</button></p>
         </div>
-
-        @if (errorMessage) {
-          <div class="alert-error">
-            <span class="alert-icon">⚠️</span>
-            <span class="alert-message">{{ errorMessage }}</span>
-          </div>
-        }
-
-        <button type="submit" class="submit-btn" [disabled]="isLoading">
-          @if (isLoading) {
-            <span class="spinner"></span>
-            <span>Iniciando sesión...</span>
-          } @else {
-            <span>Ingresar</span>
-          }
-        </button>
-
-      </form>
+      }
     </main>
 
-    <footer class="login-footer">
-      <p>¿No tienes cuenta? Regístrate en el backend para probar con un usuario personalizado.</p>
-    </footer>
   </div>
 </div>

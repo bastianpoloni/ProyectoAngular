@@ -14,3 +14,16 @@ export const authGuard: CanActivateFn = (route, state) => {
   router.navigate(['/login']);
   return false;
 };
+
+export const noAuthGuard: CanActivateFn = (route, state) => {
+  const authService = inject(Auth);
+  const router = inject(Router);
+
+  if (!authService.isAutenticated()) {
+    return true;
+  }
+
+  // Redirect to home page if already authenticated
+  router.navigate(['/']);
+  return false;
+};

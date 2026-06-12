@@ -6,13 +6,14 @@ import { DetailComponent } from './features/detalle/components/detalle/detalle.c
 import { HistoryComponent } from './features/historial/components/historial/historial.component';
 import { SettingsComponent } from './features/ajustes/components/ajustes/ajustes.component';
 import { Login } from './features/auth/components/login/login';
-import { authGuard } from './shared/guards/auth.guard';
+import { authGuard, noAuthGuard } from './shared/guards/auth.guard';
 
 export const routes: Routes = [
 	{
 		path: 'login',
 		component: Login,
-		title: 'ChanchitoApp | Iniciar Sesión'
+		title: 'ChanchitoApp | Iniciar Sesión',
+		canActivate: [noAuthGuard]
 	},
 	{
 		path: '',

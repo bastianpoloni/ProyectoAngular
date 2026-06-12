@@ -5,7 +5,39 @@
         <img src="icon.png" alt="App Icon" style="width: 65px; height: 65px; object-fit: contain;">
         <h1 style="margin: 0;">{{ title() }}</h1>
       </div>
-      <button type="button" class="logout-btn-desktop" (click)="logout()">Cerrar sesión ➜</button>
+      
+      <!-- Profile Dropdown Menu -->
+      <div class="profile-dropdown-container">
+        <button type="button" class="profile-trigger-btn" [class.active]="isProfileMenuOpen()" (click)="toggleProfileMenu($event)">
+          <span class="avatar-circle">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </span>
+          <span class="user-name-text">{{ userName }}</span>
+          <span class="chevron-down-icon">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </button>
+
+        @if (isProfileMenuOpen()) {
+          <div class="profile-dropdown-menu card-surface" (click)="$event.stopPropagation()">
+            <button type="button" class="dropdown-item" (click)="openEditProfileModal()">
+              Modificar perfil
+            </button>
+            <div class="dropdown-divider"></div>
+            <button type="button" class="dropdown-item" (click)="openChangePasswordModal()">
+              Cambiar contraseña
+            </button>
+            <div class="dropdown-divider"></div>
+            <button type="button" class="dropdown-item logout-item" (click)="logout()">
+              Cerrar Sesión
+            </button>
+          </div>
+        }
+      </div>
     </header>
 
     <nav class="desktop-nav" aria-label="Navegación principal">
@@ -42,6 +74,66 @@
       </a>
     </nav>
   </div>
+
+  <!-- Modificar Perfil Modal -->
+  @if (isEditProfileOpen()) {
+    <div class="modal-backdrop" (click)="isEditProfileOpen.set(false)">
+      <div class="modal-content card-surface" (click)="$event.stopPropagation()">
+        <h3>Modificar Perfil</h3>
+        
+        <label class="modal-field">
+          Nombre de Usuario
+          <input #profileName type="text" [value]="userName" placeholder="Nombre de usuario" class="modal-input">
+        </label>
+
+        @if (editProfileError()) {
+          <span class="error-text" style="color: #ef4444; font-size: 0.85rem; margin-top: 4px; display: block;">
+            {{ editProfileError() }}
+          </span>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="isEditProfileOpen.set(false)">Cancelar</button>
+          <button type="button" class="btn-save" (click)="updateProfileName(profileName.value)">Guardar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Cambiar Contraseña Modal -->
+  @if (isChangePasswordOpen()) {
+    <div class="modal-backdrop" (click)="isChangePasswordOpen.set(false)">
+      <div class="modal-content card-surface" (click)="$event.stopPropagation()">
+        <h3>Cambiar Contraseña</h3>
+        
+        <label class="modal-field">
+          Contraseña Actual
+          <input #oldPassword type="password" placeholder="••••••••" class="modal-input">
+        </label>
+        
+        <label class="modal-field">
+          Nueva Contraseña
+          <input #newPassword type="password" placeholder="Mínimo 6 caracteres" class="modal-input">
+        </label>
+
+        <label class="modal-field">
+          Confirmar Nueva Contraseña
+          <input #confirmPassword type="password" placeholder="••••••••" class="modal-input">
+        </label>
+
+        @if (changePasswordError()) {
+          <span class="error-text" style="color: #ef4444; font-size: 0.85rem; margin-top: 4px; display: block;">
+            {{ changePasswordError() }}
+          </span>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="isChangePasswordOpen.set(false)">Cancelar</button>
+          <button type="button" class="btn-save" (click)="changePassword(oldPassword.value, newPassword.value, confirmPassword.value)">Guardar</button>
+        </div>
+      </div>
+    </div>
+  }
 } @else {
   <router-outlet />
 }

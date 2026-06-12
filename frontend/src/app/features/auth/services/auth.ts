@@ -24,6 +24,11 @@ export class Auth {
     );
   }
 
+  register(nombre: string, email: string, password: string, saldo: number, presupuesto: number, ingresoMensual: number) {
+    const payload = { nombre, email, password, saldo, presupuesto, ingresoMensual };
+    return this.http.post<any>(`${this.apiUrl}/auth/register`, payload);
+  }
+
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
@@ -33,5 +38,17 @@ export class Auth {
   getCurrentUser() {
     const userJson = localStorage.getItem('usuario');
     return userJson ? JSON.parse(userJson) : null;
+  }
+
+  updatePassword(newPassword: string) {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Usuario no autenticado');
+    return this.http.patch<any>(`${this.apiUrl}/usuarios/${user.id}`, { password: newPassword });
+  }
+
+  updateUser(updates: any) {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('Usuario no autenticado');
+    return this.http.patch<any>(`${this.apiUrl}/usuarios/${user.id}`, updates);
   }
 }
