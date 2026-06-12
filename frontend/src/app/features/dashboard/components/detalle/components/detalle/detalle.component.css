@@ -64,14 +64,35 @@
   mask: radial-gradient(circle at center, transparent 40%, #000 41%);
 }
 
-.legend-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.legend-list {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-top: 16px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
-.legend-grid div,
+.legend-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.legend-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.legend-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 99px;
+}
+
+.legend-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+
+.legend-item,
 .transaction-stack article,
 .summary-card {
   display: flex;
@@ -83,11 +104,30 @@
   background: rgba(255, 255, 255, 0.66);
 }
 
-.legend-grid span {
+.legend-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
   display: inline-block;
   width: 12px;
   height: 12px;
-  border-radius: 999px;
+  border-radius: 50%;
+}
+
+.legend-label {
+  font-weight: 500;
+}
+
+.legend-value {
+  font-weight: 600;
+}
+
+.savings-item {
+  background: rgba(223, 232, 237, 0.4);
+  border: 1px dashed rgba(176, 194, 204, 0.7);
 }
 
 .transaction-stack,
@@ -119,13 +159,9 @@
 
 @media (max-width: 640px) {
   .screen-head,
-  .legend-grid div,
+  .legend-item,
   .transaction-stack article {
     flex-direction: column;
     align-items: start;
-  }
-
-  .legend-grid {
-    grid-template-columns: 1fr;
   }
 }

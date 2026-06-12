@@ -4,22 +4,35 @@
       <div>
         <h2>Histórico y categorías</h2>
       </div>
-      <a routerLink="/configuracion" class="screen-link">Ajustes</a>
+      <!-- <a routerLink="/configuracion" class="screen-link">Ajustes</a> -->
     </div>
 
-    <div class="mode-switch">
+    <!-- <div class="mode-switch">
       <button type="button" [class.active]="mode() === 'Temporal'" (click)="setMode('Temporal')">Vista temporal</button>
       <button type="button" [class.active]="mode() === 'Categoría'" (click)="setMode('Categoría')">Vista por categoría</button>
-    </div>
+    </div> -->
 
-    <label class="filter-box">
-      <span>Categoría</span>
-      <select [value]="selectedCategory()" (change)="selectCategory(($any($event.target)).value)">
-        @for (category of categories(); track category) {
-          <option [value]="category">{{ category }}</option>
-        }
-      </select>
-    </label>
+    <div class="filters-row">
+      <label class="filter-box">
+        <span>Categoría</span>
+        <select [value]="selectedCategory()" (change)="selectCategory(($any($event.target)).value)">
+          <option value="Todas">Todas</option>
+          @for (category of categories(); track category.nombre) {
+            <option [value]="category.nombre">{{ category.nombre }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="filter-box">
+        <span>Desde</span>
+        <input type="date" [value]="startDate()" (change)="setStartDate(($any($event.target)).value)" />
+      </label>
+
+      <label class="filter-box">
+        <span>Hasta</span>
+        <input type="date" [value]="endDate()" (change)="setEndDate(($any($event.target)).value)" />
+      </label>
+    </div>
 
     <div class="timeline-card">
       <p>Gasto por día / semana del actual mes</p>

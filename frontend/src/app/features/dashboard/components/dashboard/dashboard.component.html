@@ -28,11 +28,11 @@
       </div>
     </div>
 
-    <a class="primary-action" routerLink="/detalle">Ver detalle de gasto</a>
+   
   </article>
 
-  <section class="mini-panel card-surface">
-    <div class="panel-heading">
+  <section class="">
+    <!-- <div class="panel-heading">
       <p class="section-tag">Métricas rápidas</p>
       <span class="chip">{{ savingsRate() }}% ahorro</span>
     </div>
@@ -53,7 +53,8 @@
           <small>{{ (category.spent !== undefined ? category.spent : 0) | clpCurrency }}</small>
         </div>
       }
-    </div>
+    </div> -->
+    <app-detail></app-detail>
   </section>
 </section>
 

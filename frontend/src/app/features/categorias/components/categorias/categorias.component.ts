@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
-import { Categorias } from '../../services/categorias';
+import { Categorias } from '../../services/categorias.service';
 import { BudgetCategory } from '../../interfaces/category';
 
 export interface PredefinedCategory {

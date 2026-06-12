@@ -1,8 +1,8 @@
-<section class="detail-layout">
+<section class="t">
   <article class="screen-shell card-surface chart-panel">
     <div class="screen-head">
       <div>
-        <h2>Detalle: comida</h2>
+        <h2>Detalle</h2>
       </div>
       <a routerLink="/historial" class="screen-link">Ver histórico</a>
     </div>
@@ -10,20 +10,30 @@
     <div class="donut-box">
       <p>Total gastado este mes</p>
       <strong>{{ summary().spent | clpCurrency }}</strong>
-      <div class="donut" [style.background]="'conic-gradient(#68b95b 0 42%, #4a84b7 42% 66%, #f3b548 66% 82%, #dfe8ed 82% 100%)'"></div>
+      <div class="donut" [style.background]="donutGradient()"></div>
     </div>
 
-    <div class="legend-grid">
-      @for (category of categories().slice(0, 4); track category.nombre) {
-        <div>
-          <span [style.background]="category.color"></span>
-          <p>{{ category.nombre }}</p>
+    <div class="legend-list">
+      @for (category of categoriesWithSpent(); track category.nombre) {
+        <div class="legend-item">
+          <div class="legend-item-left">
+            <span class="legend-dot" [style.background]="category.color"></span>
+            <span class="legend-label">{{ category.nombre }}</span>
+          </div>
+          <span class="legend-value">{{ category.spent | clpCurrency }} ({{ category.percentageStr }}%)</span>
         </div>
       }
+      <div class="legend-item savings-item">
+        <div class="legend-item-left">
+          <span class="legend-dot" style="background: #dfe8ed;"></span>
+          <span class="legend-label">Ahorro disponible</span>
+        </div>
+        <span class="legend-value">{{ savings() | clpCurrency }} ({{ savingsPercentageStr() }}%)</span>
+      </div>
     </div>
   </article>
 
-  <article class="screen-shell card-surface list-panel">
+  <!-- <article class="screen-shell card-surface list-panel">
     <h3>Historia de transacción</h3>
 
     <div class="transaction-stack">
@@ -44,5 +54,5 @@
       <strong>{{ summary().balance | clpCurrency }}</strong>
     
     </div>
-  </article>
+  </article> -->
 </section>

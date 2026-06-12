@@ -1,20 +1,25 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { tap } from 'rxjs';
-import { CategoriaPresupuesto } from '../../categorias/interface/categoria-presupuesto.interface';
-import { Transaccion } from '../../historial/interface/transaccion.interface';
-import { Usuario } from '../interface/usuario.interface';
 
-const API_URL = 'http://localhost:3000';
-const UID = 'qeCnjAUIsgdaXII7TjfZF4QGgOd2';
+import { BudgetCategory } from '../../categorias/interfaces/category';
+import { User } from '../interfaces/user';
 
 @Injectable({ providedIn: 'root' })
-export class SettingsService {
+export class Ajustes {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = API_URL;
-  private readonly uid = UID;
+  private readonly apiUrl = 'http://localhost:3000';
+  get uid(): string {
+    const userJson = localStorage.getItem('usuario');
+    if (userJson) {
+      try {
+        return JSON.parse(userJson).id;
+      } catch (e) {}
+    }
+    return '335ETJFCzKMe5WKJm9e3BltRLPQ2';
+  }
 
-  private readonly usersState = signal<Usuario[]>([]);
+  private readonly usersState = signal<User[]>([]);
   readonly users = computed(() => this.usersState());
   readonly currentUser = computed(() => this.usersState()[0] ?? null);
 
@@ -24,46 +29,70 @@ export class SettingsService {
   private readonly usersErrorState = signal<string | null>(null);
   readonly usersError = computed(() => this.usersErrorState());
 
-  private readonly categoriesState = signal<CategoriaPresupuesto[]>([]);
+  private readonly categoriesState = signal<BudgetCategory[]>([]);
   readonly categories = computed(() => this.categoriesState());
 
-  private readonly transactionsState = signal<Transaccion[]>([]);
+  private readonly transactionsState = signal<any[]>([]);
 
-  readonly summary = computed(() => this.buildSummary());
+  readonly totalSpent = computed(() => {
+    const transactions = this.transactionsState();
+    return transactions
+      .filter(t => !t.esIngreso)
+      .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+  });
+
+  readonly summary = computed(() => {
+    const user = this.usersState().length > 0 ? this.usersState()[0] : null;
+    if (!user) return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
+    const balance = user.saldo;
+    const spent = this.totalSpent();
+    const budget = user.presupuesto || 0;
+    
+    const allTransactions = this.transactionsState();
+    const categoriesSpent = this.categoriesState().reduce((sum, category) => {
+      const categorySpent = allTransactions
+        .filter(t => !t.esIngreso && t.categoriaNombre === category.nombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      return sum + categorySpent;
+    }, 0);
+    const savings = budget - categoriesSpent;
+
+    const monthlyIncome = 5200; // TODO
+    return { balance, budget, spent, savings, monthlyIncome };
+  });
 
   constructor() {
     this.loadUsers();
+    this.fetchCategories();
+    this.fetchTransactions();
   }
 
   private loadUsers(): void {
     this.usersLoadingState.set(true);
     this.usersErrorState.set(null);
-    this.http.get<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
       next: (data) => {
         this.usersState.set([data]);
         this.usersLoadingState.set(false);
-        this.fetchCategories();
-        this.fetchTransactions();
       },
-      error: (error: unknown) => {
-        const message = error instanceof Error ? error.message : 'Error loading users';
-        this.usersErrorState.set(message);
+      error: (err) => {
+        this.usersErrorState.set(err.message || 'Error loading users');
         this.usersLoadingState.set(false);
-      }
+      },
     });
   }
 
-  private fetchCategories(): void {
-    this.http.get<CategoriaPresupuesto[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
-      next: (data) => this.categoriesState.set(data.map((category) => this.normalizeCategory(category, this.summary().budget))),
-      error: (error: unknown) => console.error('Error fetching categories:', error)
+  fetchCategories(): void {
+    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+      next: (data) => this.categoriesState.set(data.map(category => this.normalizeCategory(category))),
+      error: (error) => console.error('Error fetching categories:', error)
     });
   }
 
-  private fetchTransactions(): void {
-    this.http.get<Transaccion[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
-      next: (data) => this.transactionsState.set(data.map((transaction) => ({ ...transaction, fecha: new Date(transaction.fecha) }))),
-      error: (error: unknown) => console.error('Error fetching transactions:', error)
+  fetchTransactions(): void {
+    this.http.get<any[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+      next: (data) => this.transactionsState.set(data.map(t => ({ ...t, fecha: new Date(t.fecha) }))),
+      error: (error) => console.error('Error fetching transactions:', error)
     });
   }
 
@@ -72,55 +101,28 @@ export class SettingsService {
     if (!current) {
       throw new Error('Usuario no cargado');
     }
-
     const newSaldo = current.saldo + amount;
-    return this.http.patch<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
+      tap((user) => this.usersState.set([user]))
+    );
+  }
+
+  updateBudget(budget: number) {
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { presupuesto: budget }).pipe(
       tap((user) => this.usersState.set([user]))
     );
   }
 
   setBudget(budget: number) {
-    return this.http.patch<Usuario>(`${this.apiUrl}/usuarios/${this.uid}`, { presupuesto: budget }).pipe(
-      tap((user) => {
-        this.usersState.set([user]);
-        this.fetchCategories();
-      })
-    );
+    return this.updateBudget(budget);
   }
 
-  private buildSummary() {
-    const user = this.currentUser();
-    if (!user) {
-      return { balance: 0, budget: 0, spent: 0, savings: 0, monthlyIncome: 0 };
-    }
-
-    const budget = user.presupuesto ?? 0;
-    const spent = this.transactionsState()
-      .filter((transaction) => !transaction.esIngreso)
-      .reduce((acc, transaction) => acc + Math.abs(transaction.monto), 0);
-    const savings = this.categoriesState().reduce((acc, category) => {
-      const limit = category.limiteMonto ?? Math.round(budget * (category.porcentajeLimite / 100));
-      const categorySpent = this.transactionsState()
-        .filter((transaction) => !transaction.esIngreso && transaction.categoriaNombre === category.nombre)
-        .reduce((sum, transaction) => sum + Math.abs(transaction.monto), 0);
-
-      return limit > categorySpent ? acc + (limit - categorySpent) : acc;
-    }, 0);
-
-    return {
-      balance: user.saldo,
-      budget,
-      spent,
-      savings,
-      monthlyIncome: 0
-    };
-  }
-
-  private normalizeCategory(category: CategoriaPresupuesto, budget: number): CategoriaPresupuesto {
-    const limiteMonto = category.limiteMonto !== undefined
-      ? category.limiteMonto
+  private normalizeCategory(category: BudgetCategory): BudgetCategory {
+    const budget = this.summary().budget || 0;
+    const limiteMonto = category.limiteMonto !== undefined 
+      ? category.limiteMonto 
       : Math.round(budget * (category.porcentajeLimite / 100));
-
+    
     return {
       ...category,
       limiteMonto,
@@ -129,27 +131,31 @@ export class SettingsService {
   }
 
   private resolveIcono(value: string | undefined): string {
-    const rawValue = (value ?? '').toString().trim();
-    if (!rawValue) {
-      return '❌';
-    }
-
-    const icono = rawValue.toLowerCase();
+    const icono = (value ?? '').toString().trim().toLowerCase();
     const map: Record<string, string> = {
-      ic_menu_preferences: '⚙️',
-      comida: '🍔',
-      alimentacion: '🍲',
-      transporte: '🚗',
-      sueldo: '💰',
-      venta: '💵',
-      entretenimiento: '🎬',
-      ocio: '🎉',
+      'ic_menu_preferences': '⚙️',
+      'comida': '🍔',
+      'alimentacion': '🍲',
+      'transporte': '🚗',
+      'sueldo': '💰',
+      'venta': '💵',
+      'entretenimiento': '🎬',
+      'ocio': '🎉',
       'remuneraciones (sueldo)': '💼',
-      remuneraciones: '💼',
-      gasto: '💸'
+      'remuneraciones': '💼',
+      'gasto': '💸',
+      'default': '🔔'
     };
 
+    if (!icono) {
+      return '🔔';
+    }
+
+    if (Object.values(map).includes(icono)) {
+      return value ?? '🔔';
+    }
+
     const simpleKey = icono.replace(/[_\s-]/g, '');
-    return map[icono] ?? map[simpleKey] ?? rawValue;
+    return map[icono] ?? map[simpleKey] ?? '🔔';
   }
 }

@@ -28,7 +28,7 @@ export class App {
   protected readonly navigation = [
     { label: 'Inicio', path: '/', icon: '⌂' },
     { label: 'Categorías', path: '/categorias', icon: '◫' },
-    { label: 'Detalle', path: '/detalle', icon: '◌' },
+    // { label: 'Detalle', path: '/detalle', icon: '◌' },
     { label: 'Histórico', path: '/historial', icon: '≣' },
     { label: 'Ajustes', path: '/configuracion', icon: '⚙' }
   ];

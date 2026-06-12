@@ -63,17 +63,28 @@
   color: var(--text);
 }
 
+.filters-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
 .filter-box {
   display: grid;
   gap: 8px;
   color: var(--muted);
 }
 
-.filter-box select {
+.filter-box select,
+.filter-box input {
   padding: 14px 16px;
   border: 1px solid rgba(18, 33, 46, 0.08);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.74);
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
 }
 
 .timeline-card {
@@ -149,7 +160,8 @@
   }
 
   .mode-switch,
-  .timeline-bars {
+  .timeline-bars,
+  .filters-row {
     grid-template-columns: 1fr;
   }
 }
