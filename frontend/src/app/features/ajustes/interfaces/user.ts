@@ -4,6 +4,7 @@ export interface User {
   saldo: number;
   presupuesto?: number;
   ingresoMensual?: number;
+  notificaciones?: boolean;
 }
 
 export interface WalletSummary {

@@ -117,6 +117,15 @@ export class Ajustes {
     return this.updateBudget(budget);
   }
 
+  updateNotifications(enabled: boolean) {
+    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { notificaciones: enabled }).pipe(
+      tap((user) => {
+        this.usersState.set([user]);
+        localStorage.setItem('usuario', JSON.stringify(user));
+      })
+    );
+  }
+
   private normalizeCategory(category: BudgetCategory): BudgetCategory {
     const budget = this.summary().budget || 0;
     const limiteMonto = category.limiteMonto !== undefined 

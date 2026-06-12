@@ -54,4 +54,29 @@ export class SettingsComponent {
       }
     });
   }
+
+  protected toggleNotifications(): void {
+    const current = this.currentUser();
+    if (!current) {
+      return;
+    }
+    const currentVal = current.notificaciones !== false;
+    const newVal = !currentVal;
+
+    this.svc.updateNotifications(newVal).subscribe({
+      next: () => {
+        const status = newVal ? 'activadas' : 'desactivadas';
+        console.log(`Preferencias de notificacion actualizadas: ${status}`);
+      },
+      error: (err: unknown) => {
+        alert('Error al actualizar las preferencias de notificacion.');
+        console.error('Error updating notifications:', err);
+      }
+    });
+  }
+
+  protected get notificacionesActivas(): boolean {
+    const current = this.currentUser();
+    return current ? current.notificaciones !== false : true;
+  }
 }

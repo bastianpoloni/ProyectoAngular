@@ -4,6 +4,7 @@ const port = 3000;
 const admin = require('firebase-admin');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecreto_del_chanchito_123';
@@ -169,6 +170,11 @@ app.post('/usuarios/:uid/transacciones', validarJWT, async (req, res) => {
         const newTransactionDoc = await newTransactionRef.get();
         const data = newTransactionDoc.data();
         const dateValue = data?.fecha && data.fecha.toDate ? data.fecha.toDate().toISOString() : data?.fecha;
+        
+        if (transaction.categoriaNombre) {
+            verificarLimiteCategoria(uid, transaction.categoriaNombre);
+        }
+
         res.status(201).json({ id: newTransactionRef.id, ...data, fecha: dateValue });
     } catch (error) {
         res.status(500).send('Error al crear transacción: ' + error.message);
@@ -186,6 +192,11 @@ app.patch('/usuarios/:uid/transacciones/:id', validarJWT, async (req, res) => {
         const updatedDoc = await db.collection('usuario').doc(uid).collection('transaccion').doc(id).get();
         const data = updatedDoc.data();
         const dateValue = data?.fecha && data.fecha.toDate ? data.fecha.toDate().toISOString() : data?.fecha;
+
+        if (data && data.categoriaNombre) {
+            verificarLimiteCategoria(uid, data.categoriaNombre);
+        }
+
         res.json({ id: updatedDoc.id, ...data, fecha: dateValue });
     } catch (error) {
         res.status(500).send('Error al actualizar transacción: ' + error.message);
@@ -246,3 +257,126 @@ app.post('/auth/login', async (req, res) => {
         res.status(500).send('Error al iniciar sesión: ' + error.message);
     }
 });
+
+// Funciones de notificacion de presupuesto
+async function enviarCorreoAlerta(emailUsuario, nombreUsuario, categoriaNombre, porcentaje, gastado, limite) {
+    let transporter;
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+    } else {
+        console.log('No se detectaron variables de entorno para correo. Generando cuenta de pruebas temporal en Ethereal...');
+        try {
+            const testAccount = await nodemailer.createTestAccount();
+            transporter = nodemailer.createTransport({
+                host: 'smtp.ethereal.email',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: testAccount.user,
+                    pass: testAccount.pass
+                }
+            });
+        } catch (err) {
+            console.error('Error al crear cuenta de correo de prueba en Ethereal:', err);
+            return;
+        }
+    }
+
+    const mailOptions = {
+        from: '"ChanchitoApp Notificaciones" <no-reply@chanchitoapp.com>',
+        to: emailUsuario,
+        subject: `Alerta de Presupuesto: ${categoriaNombre} al ${porcentaje}%`,
+        text: `Hola ${nombreUsuario}, tu categoria ${categoriaNombre} ha alcanzado un ${porcentaje}% de su limite.`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                <h2 style="color: #d97706;">Hola, ${nombreUsuario}</h2>
+                <p>Te notificamos que tu categoria de gasto <strong>${categoriaNombre}</strong> ha alcanzado un <strong>${porcentaje}%</strong> de su limite presupuestado para este mes.</p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                <ul style="list-style: none; padding: 0;">
+                    <li><strong>Limite establecido:</strong> $${limite.toLocaleString('es-CL')}</li>
+                    <li><strong>Monto gastado actual:</strong> $${gastado.toLocaleString('es-CL')}</li>
+                </ul>
+                <p>Te sugerimos revisar tus gastos en la aplicacion para mantener tus finanzas bajo control.</p>
+                <br>
+                <p style="font-size: 0.8rem; color: #777;">Este es un correo automatico de ChanchitoApp.</p>
+            </div>
+        `
+    };
+
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Correo de alerta enviado a ${emailUsuario} para la categoria ${categoriaNombre}`);
+        if (!process.env.EMAIL_USER) {
+            console.log('--- ENLACE PARA PREVISUALIZAR EL CORREO ENVIADO (ETHEREAL) ---');
+            console.log(nodemailer.getTestMessageUrl(info));
+            console.log('--------------------------------------------------------------');
+        }
+    } catch (error) {
+        console.error('Error al enviar el correo de notificacion:', error);
+    }
+}
+
+async function verificarLimiteCategoria(uid, categoriaNombre) {
+    try {
+        const userDoc = await db.collection('usuario').doc(uid).get();
+        if (!userDoc.exists) return;
+        const usuario = userDoc.data();
+
+        if (usuario.notificaciones === false) {
+            console.log(`Notificaciones desactivadas para el usuario ${usuario.nombre}`);
+            return;
+        }
+
+        const catSnapshot = await db.collection('usuario').doc(uid)
+            .collection('categoria')
+            .where('nombre', '==', categoriaNombre)
+            .limit(1)
+            .get();
+
+        if (catSnapshot.empty) return;
+        const categoria = catSnapshot.docs[0].data();
+
+        if (categoria.esIngreso) return;
+
+        const presupuestoUsuario = usuario.presupuesto || 0;
+        const limiteMonto = categoria.limiteMonto !== undefined 
+            ? categoria.limiteMonto 
+            : Math.round(presupuestoUsuario * (categoria.porcentajeLimite / 100));
+
+        if (limiteMonto <= 0) return;
+
+        const txSnapshot = await db.collection('usuario').doc(uid)
+            .collection('transaccion')
+            .where('categoriaNombre', '==', categoriaNombre)
+            .get();
+
+        let totalGastado = 0;
+        txSnapshot.forEach(doc => {
+            const tx = doc.data();
+            if (!tx.esIngreso) {
+                totalGastado += Math.abs(tx.monto);
+            }
+        });
+
+        const porcentajeUsado = Math.round((totalGastado / limiteMonto) * 100);
+
+        if (porcentajeUsado >= 80) {
+            await enviarCorreoAlerta(
+                usuario.email,
+                usuario.nombre,
+                categoriaNombre,
+                porcentajeUsado,
+                totalGastado,
+                limiteMonto
+            );
+        }
+    } catch (error) {
+        console.error('Error al verificar el limite de la categoria:', error);
+    }
+}

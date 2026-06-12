@@ -54,11 +54,28 @@
   background: rgba(18, 33, 46, 0.08);
   color: var(--muted);
   font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle:hover {
+  background: rgba(18, 33, 46, 0.14);
+  color: #0f172a;
+}
+
+.toggle:active {
+  transform: scale(0.96);
 }
 
 .toggle--on {
   background: rgba(123, 201, 111, 0.18);
   color: #2d7f3b;
+}
+
+.toggle--on:hover {
+  background: rgba(123, 201, 111, 0.28);
+  color: #1b5e20;
 }
 
 .settings-list {
