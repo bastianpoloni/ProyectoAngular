@@ -1,6 +1,7 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, HostListener, computed } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Auth } from './features/auth/services/auth';
+import { WalletService } from './shared/services/wallet.service';
 
 @Component({
   selector: 'app-root',
@@ -12,9 +13,19 @@ import { Auth } from './features/auth/services/auth';
 export class App {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
+  private readonly walletService = inject(WalletService);
 
   protected readonly isAutenticated = this.auth.isAutenticated;
   protected readonly title = signal('ChanchitoApp');
+
+  protected readonly hasSharedWallet = computed(() => !!this.walletService.sharedWalletInfo()?.hasSharedWallet);
+  protected readonly activeWallet = this.walletService.activeWallet;
+  protected readonly sharedWalletEmail = computed(() => this.walletService.sharedWalletInfo()?.sharedEmail || '');
+  protected readonly sharedWalletName = computed(() => this.walletService.sharedWalletInfo()?.sharedName || '');
+
+  protected toggleWallet(): void {
+    this.walletService.toggleWallet();
+  }
   
   // Profile dropdown states
   isProfileMenuOpen = signal(false);

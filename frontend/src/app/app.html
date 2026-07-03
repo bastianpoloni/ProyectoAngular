@@ -1,9 +1,17 @@
 @if (isAutenticated()) {
   <div class="app-shell">
     <header class="hero-bar">
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
         <img src="icon.png" alt="App Icon" style="width: 65px; height: 65px; object-fit: contain;">
         <h1 style="margin: 0;">{{ title() }}</h1>
+        @if (hasSharedWallet()) {
+          <div class="wallet-selector" style="margin-left: 1.5rem;">
+            <select [value]="activeWallet()" (change)="toggleWallet()" class="wallet-select-dropdown">
+              <option value="personal">Billetera Personal</option>
+              <option value="shared">Billetera Compartida con {{ sharedWalletName() }}</option>
+            </select>
+          </div>
+        }
       </div>
       
       <!-- Profile Dropdown Menu -->

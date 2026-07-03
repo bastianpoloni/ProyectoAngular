@@ -5,38 +5,48 @@
       <h2>Preferencias y presupuesto</h2>
     </div>
 
+    <!-- Presupuesto mensual -->
     <div class="settings-card">
-      <div>
-        <strong>Presupuesto mensual</strong>
-        <p>Balance base para la meta del mes</p>
+      <div class="settings-card-header">
+        <div>
+          <strong>Presupuesto mensual</strong>
+          <p>Balance base para la meta del mes</p>
+        </div>
       </div>
-      <div class="amount-action">
-        <input #budgetInput type="number" min="1" step="1000" placeholder="Monto CLP" />
+      <div class="amount-action" style="width: 100%;">
+        <input #budgetInput type="number" min="1" step="1000" placeholder="Monto CLP" style="flex: 1;" />
         <button type="button" (click)="setBudget(budgetInput)">Guardar</button>
       </div>
-      <p class="hint">Actualmente: {{ summary().budget | clpCurrency }}</p>
+      <p class="hint" style="margin-top: 8px;">Actualmente: {{ summary().budget | clpCurrency }}</p>
     </div>
 
+    <!-- Billetera compartida -->
     <div class="settings-card">
-      <div>
-        <strong>Usuarios backend</strong>
-        <p>Datos cargados desde la API de backend.</p>
+      <div class="settings-card-header">
+        <div>
+          <strong>Billetera compartida</strong>
+          <p>Comparte un presupuesto mensual y transacciones con otro usuario registrado.</p>
+        </div>
       </div>
-      <strong>{{ users().length || 0 }}</strong>
-      <p>{{ usersError() }}</p>
+      <div class="shared-wallet-action">
+        <input #sharedEmailInput type="email" placeholder="Email del otro usuario" [value]="sharedWalletInfo()?.sharedEmail || ''" />
+        <div class="shared-wallet-row">
+          <input #sharedBudgetInput type="number" min="1" step="1000" placeholder="Presupuesto Compartido CLP" [value]="sharedWalletInfo()?.presupuestoCompartido || ''" style="flex: 1;" />
+          <button type="button" (click)="saveSharedWallet(sharedEmailInput.value, sharedBudgetInput.value)">Vincular</button>
+        </div>
+      </div>
+      @if (sharedWalletInfo()?.hasSharedWallet) {
+        <div class="unlink-row">
+          <p class="hint" style="margin: 0;">
+            Vínculo activo con: <strong>{{ sharedWalletInfo()?.sharedEmail }}</strong> (Presupuesto: {{ sharedWalletInfo()?.presupuestoCompartido | clpCurrency }})
+          </p>
+          <button type="button" class="btn-unlink" (click)="unlinkSharedWallet()">Desvincular</button>
+        </div>
+      }
     </div>
 
-    <div class="settings-card">
-      <div>
-        <strong>Agregar presupuesto</strong>
-      </div>
-      <div class="amount-action">
-        <input #amountInput type="number" min="1" step="1000" placeholder="Monto CLP" />
-        <button type="button" (click)="addBalance(amountInput)">Agregar</button>
-      </div>
-    </div>
-
-    <div class="settings-card">
+    <!-- Notificaciones -->
+    <div class="settings-card flex-row">
       <div>
         <strong>Notificaciones</strong>
         <p>Alertas cuando una categoría supera el 80%</p>
