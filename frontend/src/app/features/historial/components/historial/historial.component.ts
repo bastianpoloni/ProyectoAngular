@@ -31,7 +31,7 @@ export class HistoryComponent implements OnInit {
 
   editingTransactionId = signal<string | null>(null);
   budgetErrorMessage = signal<string | null>(null);
-  transactionToDelete = signal<{ id: string, monto: number } | null>(null);
+  transactionToDelete = signal<string | null>(null);
 
   setMode(mode: 'Temporal' | 'Categoría'): void {
     this.svc.setMode(mode);
@@ -57,15 +57,15 @@ export class HistoryComponent implements OnInit {
     this.editingTransactionId.set(null);
   }
 
-  deleteTransaction(id: string | undefined, monto: number): void {
+  deleteTransaction(id: string | undefined): void {
     if (!id) return;
-    this.transactionToDelete.set({ id, monto });
+    this.transactionToDelete.set(id);
   }
 
   confirmDeleteTransaction(): void {
-    const tx = this.transactionToDelete();
-    if (tx) {
-      this.svc.deleteTransaction(tx.id, tx.monto).subscribe({
+    const id = this.transactionToDelete();
+    if (id) {
+      this.svc.deleteTransaction(id).subscribe({
         next: () => {
           this.transactionToDelete.set(null);
         },
@@ -126,7 +126,7 @@ export class HistoryComponent implements OnInit {
       categoriaNombre: catNombre,
       esIngreso: isIngreso,
       fecha: transaction.fecha
-    }, transaction.monto).subscribe({
+    }).subscribe({
       next: () => {
         this.cancelEdit();
       },

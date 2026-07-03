@@ -1,56 +1,71 @@
+<article class="screen-shell card-surface settings-panel">
+  <div>
+    <p class="section-tag">Configuración</p>
+    <h2>Preferencias y presupuesto</h2>
+  </div>
 
-  <article class="screen-shell card-surface settings-panel">
-    <div>
-      <p class="section-tag">Configuración</p>
-      <h2>Preferencias y presupuesto</h2>
+  <!-- Presupuesto mensual -->
+  <div class="settings-card">
+    <div class="settings-card-info">
+      <strong>Presupuesto mensual</strong>
+      <p>Balance base para la meta del mes</p>
     </div>
-
-    <!-- Presupuesto mensual -->
-    <div class="settings-card">
-      <div class="settings-card-header">
-        <div>
-          <strong>Presupuesto mensual</strong>
-          <p>Balance base para la meta del mes</p>
-        </div>
-      </div>
-      <div class="amount-action" style="width: 100%;">
-        <input #budgetInput type="number" min="1" step="1000" placeholder="Monto CLP" style="flex: 1;" />
+    <div class="settings-card-actions">
+      <div class="amount-action">
+        <input #budgetInput type="text" inputmode="numeric" placeholder="Monto" (input)="formatAmount($event)" />
         <button type="button" (click)="setBudget(budgetInput)">Guardar</button>
       </div>
-      <p class="hint" style="margin-top: 8px;">Actualmente: {{ summary().budget | clpCurrency }}</p>
+      <p class="hint">Actualmente: {{ summary().budget | clpCurrency }}</p>
     </div>
+  </div>
 
-    <!-- Billetera compartida -->
-    <div class="settings-card">
-      <div class="settings-card-header">
-        <div>
-          <strong>Billetera compartida</strong>
-          <p>Comparte un presupuesto mensual y transacciones con otro usuario registrado.</p>
-        </div>
+  <!-- Agregar presupuesto -->
+  <div class="settings-card">
+    <div class="settings-card-info">
+      <strong>Agregar presupuesto</strong>
+      <p>Incrementar el presupuesto actual disponible</p>
+    </div>
+    <div class="settings-card-actions">
+      <div class="amount-action">
+        <input #amountInput type="text" inputmode="numeric" placeholder="Monto" (input)="formatAmount($event)" />
+        <button type="button" (click)="addBalance(amountInput)">Agregar</button>
       </div>
-      <div class="shared-wallet-action">
+      <p class="hint">Actualmente: {{ summary().balance | clpCurrency }}</p>
+    </div>
+  </div>
+
+  <!-- Billetera compartida -->
+  <div class="settings-card">
+    <div class="settings-card-info">
+      <strong>Billetera compartida</strong>
+      <p>Comparte un presupuesto mensual y transacciones con otro usuario registrado.</p>
+    </div>
+    <div class="settings-card-actions">
+      <div class="shared-wallet-inputs">
         <input #sharedEmailInput type="email" placeholder="Email del otro usuario" [value]="sharedWalletInfo()?.sharedEmail || ''" />
-        <div class="shared-wallet-row">
-          <input #sharedBudgetInput type="number" min="1" step="1000" placeholder="Presupuesto Compartido CLP" [value]="sharedWalletInfo()?.presupuestoCompartido || ''" style="flex: 1;" />
+        <div class="amount-action">
+          <input #sharedBudgetInput type="text" inputmode="numeric" placeholder="Presupuesto Compartido" (input)="formatAmount($event)" [value]="sharedWalletInfo()?.presupuestoCompartido || ''" />
           <button type="button" (click)="saveSharedWallet(sharedEmailInput.value, sharedBudgetInput.value)">Vincular</button>
         </div>
       </div>
       @if (sharedWalletInfo()?.hasSharedWallet) {
         <div class="unlink-row">
-          <p class="hint" style="margin: 0;">
-            Vínculo activo con: <strong>{{ sharedWalletInfo()?.sharedEmail }}</strong> (Presupuesto: {{ sharedWalletInfo()?.presupuestoCompartido | clpCurrency }})
-          </p>
+          <span class="hint text-left">
+            Vínculo activo con: <strong>{{ sharedWalletInfo()?.sharedEmail }}</strong>
+          </span>
           <button type="button" class="btn-unlink" (click)="unlinkSharedWallet()">Desvincular</button>
         </div>
       }
     </div>
+  </div>
 
-    <!-- Notificaciones -->
-    <div class="settings-card flex-row">
-      <div>
-        <strong>Notificaciones</strong>
-        <p>Alertas cuando una categoría supera el 80%</p>
-      </div>
+  <!-- Notificaciones -->
+  <div class="settings-card">
+    <div class="settings-card-info">
+      <strong>Notificaciones</strong>
+      <p>Alertas cuando una categoría supera el 80%</p>
+    </div>
+    <div class="settings-card-actions toggle-container">
       <button 
         type="button" 
         class="toggle" 
@@ -59,5 +74,5 @@
         {{ notificacionesActivas ? 'Activas' : 'Inactivas' }}
       </button>
     </div>
-  </article>
-
+  </div>
+</article>

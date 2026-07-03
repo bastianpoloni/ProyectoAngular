@@ -82,7 +82,7 @@ export class Dashboard {
   constructor() {
     effect(() => {
       // Re-run this effect when activeWallet signal updates
-      const _ = this.walletService.activeWallet();
+      this.walletService.activeWallet();
       this.loadUsers();
       this.fetchCategories();
       this.fetchTransactions();

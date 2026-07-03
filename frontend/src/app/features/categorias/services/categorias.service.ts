@@ -130,7 +130,7 @@ export class Categorias {
 
   constructor() {
     effect(() => {
-      const _ = this.walletService.activeWallet();
+      this.walletService.activeWallet();
       this.loadUsers();
       this.fetchCategories();
       this.fetchTransactions();

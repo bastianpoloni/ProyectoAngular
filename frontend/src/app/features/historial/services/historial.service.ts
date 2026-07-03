@@ -4,7 +4,7 @@ import { tap } from 'rxjs';
 
 import { BudgetCategory } from '../../categorias/interfaces/category';
 import { User } from '../../ajustes/interfaces/user';
-import { TimelineEntry, TransactionEntry } from '../interfaces/transaction';
+import { TransactionEntry } from '../interfaces/transaction';
 import { environment } from '../../../../environments/environment';
 import { WalletService } from '../../../shared/services/wallet.service';
 
@@ -95,7 +95,7 @@ export class Historial {
 
   constructor() {
     effect(() => {
-      const _ = this.walletService.activeWallet();
+      this.walletService.activeWallet();
       this.loadUsers();
       this.fetchCategories();
       this.fetchTransactions();
@@ -111,7 +111,7 @@ export class Historial {
     });
   }
 
-  deleteTransaction(id: string, monto: number) {
+  deleteTransaction(id: string) {
     const userId = this.uid;
     if (!userId) {
       throw new Error('Usuario no autenticado');
@@ -123,7 +123,7 @@ export class Historial {
     );
   }
 
-  updateTransaction(id: string, transaction: Omit<TransactionEntry, 'id'>, oldMonto: number) {
+  updateTransaction(id: string, transaction: Omit<TransactionEntry, 'id'>) {
     const userId = this.uid;
     if (!userId) {
       throw new Error('Usuario no autenticado');

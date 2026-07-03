@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 import { CategoriesComponent } from './features/categorias/components/categorias/categorias.component';
 import { DashboardComponent } from './features/dashboard/components/dashboard/dashboard.component';
-import { DetailComponent } from './features/dashboard/components/detalle/components/detalle/detalle.component';
 import { HistoryComponent } from './features/historial/components/historial/historial.component';
 import { SettingsComponent } from './features/ajustes/components/ajustes/ajustes.component';
 import { Login } from './features/auth/components/login/login';
