@@ -1,16 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { AuthResponse } from '../interfaces/auth.interface';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = environment.apiUrl;
 
   isAutenticated = signal(!!localStorage.getItem('token'));
+  currentUser = signal<any>(this.getCurrentUser());
 
   login(email: string, password: string) {
     const credentials = { email, password };
@@ -19,13 +21,14 @@ export class Auth {
         localStorage.setItem('token', resp.token);
         localStorage.setItem('usuario', JSON.stringify(resp.usuario));
         this.isAutenticated.set(true);
+        this.currentUser.set(resp.usuario);
         return resp;
       })
     );
   }
 
-  register(nombre: string, email: string, password: string, saldo: number, presupuesto: number, ingresoMensual: number) {
-    const payload = { nombre, email, password, saldo, presupuesto, ingresoMensual };
+  register(nombre: string, email: string, password: string, presupuesto: number) {
+    const payload = { nombre, email, password, presupuesto };
     return this.http.post<any>(`${this.apiUrl}/auth/register`, payload);
   }
 
@@ -33,6 +36,7 @@ export class Auth {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     this.isAutenticated.set(false);
+    this.currentUser.set(null);
   }
 
   getCurrentUser() {
@@ -43,12 +47,22 @@ export class Auth {
   updatePassword(newPassword: string) {
     const user = this.getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
-    return this.http.patch<any>(`${this.apiUrl}/usuarios/${user.id}`, { password: newPassword });
+    return this.http.patch<any>(`${this.apiUrl}/usuarios/${user.id}`, { password: newPassword }).pipe(
+      tap((updatedUser) => {
+        localStorage.setItem('usuario', JSON.stringify(updatedUser));
+        this.currentUser.set(updatedUser);
+      })
+    );
   }
 
   updateUser(updates: any) {
     const user = this.getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
-    return this.http.patch<any>(`${this.apiUrl}/usuarios/${user.id}`, updates);
+    return this.http.patch<any>(`${this.apiUrl}/usuarios/${user.id}`, updates).pipe(
+      tap((updatedUser) => {
+        localStorage.setItem('usuario', JSON.stringify(updatedUser));
+        this.currentUser.set(updatedUser);
+      })
+    );
   }
 }

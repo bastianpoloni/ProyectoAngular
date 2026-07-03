@@ -431,3 +431,28 @@
   font-weight: 500;
 }
 
+.wallet-select-dropdown {
+  padding: 8px 16px;
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border, rgba(18, 33, 46, 0.08));
+  background: var(--bg-card, #ffffff);
+  color: var(--text-main, #1e293b);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  transition: all 0.2s ease;
+}
+
+.wallet-select-dropdown:hover {
+  border-color: var(--brand-strong, #4a84b7);
+  background: var(--bg-hover, #f8fafc);
+  transform: translateY(-1px);
+}
+
+.wallet-select-dropdown:focus {
+  border-color: var(--brand-strong, #4a84b7);
+  box-shadow: 0 0 0 3px rgba(74, 132, 183, 0.15);
+}
+

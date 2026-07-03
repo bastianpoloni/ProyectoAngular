@@ -1,23 +1,21 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal, effect } from '@angular/core';
 import { tap, switchMap } from 'rxjs';
 
 import { BudgetCategory } from '../../categorias/interfaces/category';
 import { User } from '../../ajustes/interfaces/user';
 import { TimelineEntry, TransactionEntry } from '../interfaces/transaction';
+import { environment } from '../../../../environments/environment';
+import { WalletService } from '../../../shared/services/wallet.service';
 
 @Injectable({ providedIn: 'root' })
 export class Historial {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:3000';
+  private readonly apiUrl = environment.apiUrl;
+  private readonly walletService = inject(WalletService);
+
   get uid(): string {
-    const userJson = localStorage.getItem('usuario');
-    if (userJson) {
-      try {
-        return JSON.parse(userJson).id;
-      } catch (e) {}
-    }
-    return '335ETJFCzKMe5WKJm9e3BltRLPQ2';
+    return this.walletService.currentWalletUid();
   }
 
   private readonly categoriesState = signal<BudgetCategory[]>([]);
@@ -96,56 +94,69 @@ export class Historial {
   });
 
   constructor() {
-    this.loadUsers();
-    this.fetchCategories();
-    this.fetchTransactions();
+    effect(() => {
+      const _ = this.walletService.activeWallet();
+      this.loadUsers();
+      this.fetchCategories();
+      this.fetchTransactions();
+    });
   }
 
   loadUsers(): void {
-    this.http.get<User>(`${this.apiUrl}/usuarios/${this.uid}`).subscribe({
+    const userId = this.uid;
+    if (!userId) return;
+    this.http.get<User>(`${this.apiUrl}/usuarios/${userId}`).subscribe({
       next: (data) => this.usersState.set([data]),
       error: (err) => console.error('Error loading users:', err),
     });
   }
 
-  updateBalance(amount: number) {
-    const current = this.currentUser();
-    if (!current) {
-      throw new Error('Usuario no cargado');
-    }
-    const newSaldo = current.saldo + amount;
-    return this.http.patch<User>(`${this.apiUrl}/usuarios/${this.uid}`, { saldo: newSaldo }).pipe(
-      tap((user) => this.usersState.set([user]))
-    );
-  }
-
   deleteTransaction(id: string, monto: number) {
-    return this.http.delete(`${this.apiUrl}/usuarios/${this.uid}/transacciones/${id}`).pipe(
-      tap(() => this.fetchTransactions()),
-      switchMap(() => this.updateBalance(-monto))
+    const userId = this.uid;
+    if (!userId) {
+      throw new Error('Usuario no autenticado');
+    }
+    const isShared = this.walletService.isSharedActive();
+    const endpoint = isShared ? 'transacciones-compartidas' : 'transacciones';
+    return this.http.delete(`${this.apiUrl}/usuarios/${userId}/${endpoint}/${id}`).pipe(
+      tap(() => this.fetchTransactions())
     );
   }
 
   updateTransaction(id: string, transaction: Omit<TransactionEntry, 'id'>, oldMonto: number) {
-    return this.http.patch<TransactionEntry>(`${this.apiUrl}/usuarios/${this.uid}/transacciones/${id}`, transaction).pipe(
-      tap(() => this.fetchTransactions()),
-      switchMap(() => this.updateBalance(transaction.monto - oldMonto))
+    const userId = this.uid;
+    if (!userId) {
+      throw new Error('Usuario no autenticado');
+    }
+    const isShared = this.walletService.isSharedActive();
+    const endpoint = isShared ? 'transacciones-compartidas' : 'transacciones';
+    return this.http.patch<TransactionEntry>(`${this.apiUrl}/usuarios/${userId}/${endpoint}/${id}`, transaction).pipe(
+      tap(() => this.fetchTransactions())
     );
   }
 
   fetchCategories(): void {
-    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${this.uid}/categorias`).subscribe({
+    const userId = this.uid;
+    if (!userId) return;
+    const isShared = this.walletService.isSharedActive();
+    const endpoint = isShared ? 'categorias-compartidas' : 'categorias';
+    this.http.get<BudgetCategory[]>(`${this.apiUrl}/usuarios/${userId}/${endpoint}`).subscribe({
       next: (data) => this.categoriesState.set(data.map(category => this.normalizeCategory(category))),
       error: (error) => console.error('Error fetching categories:', error)
     });
   }
 
   fetchTransactions(): void {
-    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${this.uid}/transacciones`).subscribe({
+    const userId = this.uid;
+    if (!userId) return;
+    const isShared = this.walletService.isSharedActive();
+    const endpoint = isShared ? 'transacciones-compartidas' : 'transacciones';
+    this.http.get<TransactionEntry[]>(`${this.apiUrl}/usuarios/${userId}/${endpoint}`).subscribe({
       next: (data) => this.transactionsState.set(data.map(t => ({ ...t, fecha: new Date(t.fecha) }))),
       error: (error) => console.error('Error fetching transactions:', error)
     });
   }
+
 
   setSelectedCategory(category: string): void {
     this.selectedCategory.set(category);

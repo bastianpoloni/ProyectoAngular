@@ -130,39 +130,13 @@
             }
           </div>
 
-          <div class="form-row">
-            <div class="form-group" [class.has-error]="registerForm.get('saldo')?.touched && registerForm.get('saldo')?.invalid">
-              <label for="reg-saldo">Saldo Inicial ($)</label>
-              <div class="input-wrapper">
-                <input 
-                  id="reg-saldo" 
-                  type="number" 
-                  formControlName="saldo" 
-                  required
-                >
-              </div>
-            </div>
-
-            <div class="form-group" [class.has-error]="registerForm.get('presupuesto')?.touched && registerForm.get('presupuesto')?.invalid">
-              <label for="reg-presupuesto">Presupuesto ($)</label>
-              <div class="input-wrapper">
-                <input 
-                  id="reg-presupuesto" 
-                  type="number" 
-                  formControlName="presupuesto" 
-                  required
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group" [class.has-error]="registerForm.get('ingresoMensual')?.touched && registerForm.get('ingresoMensual')?.invalid">
-            <label for="reg-ingreso">Ingreso Mensual ($)</label>
+          <div class="form-group" [class.has-error]="registerForm.get('presupuesto')?.touched && registerForm.get('presupuesto')?.invalid">
+            <label for="reg-presupuesto">Presupuesto ($)</label>
             <div class="input-wrapper">
               <input 
-                id="reg-ingreso" 
+                id="reg-presupuesto" 
                 type="number" 
-                formControlName="ingresoMensual" 
+                formControlName="presupuesto" 
                 required
               >
             </div>

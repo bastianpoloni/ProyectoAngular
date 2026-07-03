@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { ClpCurrencyPipe } from '../../../../shared/pipes/clp-currency.pipe';
 import { Ajustes } from '../../services/ajustes.service';
+import { WalletService } from '../../../../shared/services/wallet.service';
 
 @Component({
   selector: 'app-settings',
@@ -13,36 +14,14 @@ import { Ajustes } from '../../services/ajustes.service';
 })
 export class SettingsComponent {
   private readonly svc = inject(Ajustes);
+  private readonly walletService = inject(WalletService);
 
   protected readonly summary = this.svc.summary;
   protected readonly categories = this.svc.categories;
   protected readonly currentUser = this.svc.currentUser;
-
-  protected formatAmount(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let val = input.value.replace(/\D/g, '');
-    if (val) {
-      val = Number(val).toLocaleString('es-CL');
-    }
-    input.value = val;
-  }
-
-  protected addBalance(amountInput: HTMLInputElement) {
-    const value = Number(amountInput.value.replace(/\D/g, ''));
-    if (!value || value <= 0) {
-      return;
-    }
-    this.svc.addBalance(value).subscribe({
-      next: () => {
-        alert(`Se han agregado $${value.toLocaleString('es-CL')} al saldo exitosamente.`);
-        amountInput.value = '';
-      },
-      error: (err: unknown) => {
-        alert('Error al agregar saldo.');
-        console.error('Error al agregar saldo:', err);
-      }
-    });
-  }
+  
+  protected readonly sharedWalletInfo = this.walletService.sharedWalletInfo;
+  protected readonly isSharedActive = this.walletService.isSharedActive;
 
   protected setBudget(budgetInput: HTMLInputElement) {
     const value = Number(budgetInput.value.replace(/\D/g, ''));
@@ -61,28 +40,43 @@ export class SettingsComponent {
     });
   }
 
-  protected toggleNotifications(): void {
-    const current = this.currentUser();
-    if (!current) {
+  protected saveSharedWallet(email: string, budgetStr: string): void {
+    const trimmedEmail = (email || '').trim().toLowerCase();
+    const budget = Number(budgetStr);
+    
+    if (!trimmedEmail) {
+      alert('Debe ingresar un email válido.');
       return;
     }
-    const currentVal = current.notificaciones !== false;
-    const newVal = !currentVal;
+    if (isNaN(budget) || budget <= 0) {
+      alert('Debe ingresar un presupuesto mensual válido mayor a 0.');
+      return;
+    }
 
-    this.svc.updateNotifications(newVal).subscribe({
+    this.walletService.saveSharedWalletInfo(trimmedEmail, budget).subscribe({
       next: () => {
-        const status = newVal ? 'activadas' : 'desactivadas';
-        console.log(`Preferencias de notificacion actualizadas: ${status}`);
+        alert('Billetera compartida vinculada con éxito.');
       },
-      error: (err: unknown) => {
-        alert('Error al actualizar las preferencias de notificacion.');
-        console.error('Error updating notifications:', err);
+      error: (err: any) => {
+        const msg = err.error?.message || 'Error al vincular la billetera compartida.';
+        alert(msg);
+        console.error('Error sharing wallet:', err);
       }
     });
   }
 
-  protected get notificacionesActivas(): boolean {
-    const current = this.currentUser();
-    return current ? current.notificaciones !== false : true;
+  protected unlinkSharedWallet(): void {
+    if (confirm('¿Está seguro de que desea desvincular la billetera compartida? Se perderá el acceso conjunto.')) {
+      this.walletService.saveSharedWalletInfo('', 0).subscribe({
+        next: () => {
+          alert('Billetera compartida desvinculada.');
+          this.walletService.activeWallet.set('personal');
+        },
+        error: (err: any) => {
+          alert('Error al desvincular la billetera.');
+          console.error(err);
+        }
+      });
+    }
   }
 }
