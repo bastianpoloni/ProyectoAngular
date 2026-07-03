@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal, effect } from '@angular/core';
-import { tap, switchMap } from 'rxjs';
+import { tap } from 'rxjs';
 
 import { User, WalletSummary } from '../../ajustes/interfaces/user';
 import { TransactionEntry } from '../../historial/interfaces/transaction';
