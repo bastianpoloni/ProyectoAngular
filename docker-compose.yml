@@ -6,7 +6,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "8072:3000"
     environment:
       - NODE_ENV=production
       # La ruta del archivo de credenciales de Firebase dentro del contenedor
@@ -18,7 +18,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8071:80"
     depends_on:
       - backend
     restart: always
