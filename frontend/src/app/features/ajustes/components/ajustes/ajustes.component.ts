@@ -18,22 +18,45 @@ export class SettingsComponent {
 
   protected readonly summary = this.svc.summary;
   protected readonly categories = this.svc.categories;
-  protected readonly users = this.svc.users;
-  protected readonly usersLoading = this.svc.usersLoading;
-  protected readonly usersError = this.svc.usersError;
   protected readonly currentUser = this.svc.currentUser;
   
   protected readonly sharedWalletInfo = this.walletService.sharedWalletInfo;
   protected readonly isSharedActive = this.walletService.isSharedActive;
 
+  protected formatAmount(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val) {
+      val = Number(val).toLocaleString('es-CL');
+    }
+    input.value = val;
+  }
+
+  protected addBalance(amountInput: HTMLInputElement) {
+    const value = Number(amountInput.value.replace(/\D/g, ''));
+    if (!value || value <= 0) {
+      return;
+    }
+    this.svc.addBalance(value).subscribe({
+      next: () => {
+        alert(`Se han agregado $${value.toLocaleString('es-CL')} al saldo exitosamente.`);
+        amountInput.value = '';
+      },
+      error: (err: unknown) => {
+        alert('Error al agregar saldo.');
+        console.error('Error al agregar saldo:', err);
+      }
+    });
+  }
+
   protected setBudget(budgetInput: HTMLInputElement) {
-    const value = Number(budgetInput.value);
+    const value = Number(budgetInput.value.replace(/\D/g, ''));
     if (!value || value <= 0) {
       return;
     }
     this.svc.setBudget(value).subscribe({
       next: () => {
-        alert(`El presupuesto mensual se ha actualizado a $${value}.`);
+        alert(`El presupuesto mensual se ha actualizado a $${value.toLocaleString('es-CL')}.`);
         budgetInput.value = '';
       },
       error: (err: unknown) => {
@@ -81,5 +104,30 @@ export class SettingsComponent {
         }
       });
     }
+  }
+
+  protected toggleNotifications(): void {
+    const current = this.currentUser();
+    if (!current) {
+      return;
+    }
+    const currentVal = current.notificaciones !== false;
+    const newVal = !currentVal;
+
+    this.svc.updateNotifications(newVal).subscribe({
+      next: () => {
+        const status = newVal ? 'activadas' : 'desactivadas';
+        console.log(`Preferencias de notificacion actualizadas: ${status}`);
+      },
+      error: (err: unknown) => {
+        alert('Error al actualizar las preferencias de notificacion.');
+        console.error('Error updating notifications:', err);
+      }
+    });
+  }
+
+  protected get notificacionesActivas(): boolean {
+    const current = this.currentUser();
+    return current ? current.notificaciones !== false : true;
   }
 }

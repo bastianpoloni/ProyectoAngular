@@ -24,8 +24,17 @@ export class AddExpenseModalComponent implements OnInit {
     this.close.emit();
   }
 
+  protected formatAmount(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val) {
+      val = Number(val).toLocaleString('es-CL');
+    }
+    input.value = val;
+  }
+
   protected save(desc: string, amountVal: string, catName: string): void {
-    const amountNum = Number(amountVal);
+    const amountNum = Number(amountVal.replace(/\D/g, ''));
     if (!desc.trim()) {
       this.errorMessage.set('La descripción es obligatoria.');
       return;
@@ -37,6 +46,18 @@ export class AddExpenseModalComponent implements OnInit {
     if (!catName) {
       this.errorMessage.set('Debes seleccionar una categoría.');
       return;
+    }
+
+    const category = this.svc.categories().find(c => c.nombre === catName);
+    if (category) {
+      const spent = this.svc.transactions()
+        .filter(t => !t.esIngreso && t.categoriaNombre === catName)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      const remaining = (category.limiteMonto ?? 0) - spent;
+      if (amountNum > remaining) {
+        this.errorMessage.set('El monto ingresado excede el presupuesto disponible de la categoría.');
+        return;
+      }
     }
 
     this.svc.addTransaction({
@@ -51,7 +72,7 @@ export class AddExpenseModalComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error saving expense:', err);
-        this.errorMessage.set('Error al guardar el gasto. Intenta de nuevo.');
+        this.errorMessage.set(err.error?.message || 'Error al guardar el gasto. Intenta de nuevo.');
       }
     });
   }

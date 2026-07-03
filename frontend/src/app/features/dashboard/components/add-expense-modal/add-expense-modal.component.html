@@ -9,7 +9,7 @@
 
     <label class="modal-field">
       Monto
-      <input #expenseAmount type="number" placeholder="Ej. 5000" class="modal-input" />
+      <input #expenseAmount type="text" inputmode="numeric" placeholder="Ej. 5.000" class="modal-input" (input)="formatAmount($event)" />
     </label>
 
     <label class="modal-field">

@@ -6,7 +6,7 @@ El proyecto está diseñado bajo una arquitectura limpia y modular de **Angular 
 
 ---
 
-## 🚀 Requisitos Previos
+## Requisitos Previos
 
 - **Node.js** (versión LTS recomendada)
 - **npm** (gestor de paquetes)
@@ -14,7 +14,7 @@ El proyecto está diseñado bajo una arquitectura limpia y modular de **Angular 
 
 ---
 
-## 📁 Estructura del Proyecto
+##Estructura del Proyecto
 
 - `backend/`: API REST que expone endpoints seguros de usuarios, categorías, transacciones y autenticación por JWT.
 - `frontend/`: Aplicación cliente en Angular 18+ que utiliza servicios independientes descentralizados por feature y signals para la reactividad.
@@ -71,7 +71,7 @@ npm start
 
 ---
 
-## 💻 Configuración del Frontend
+## Configuración del Frontend
 
 ### 1. Iniciar el Frontend
 En otra ventana de la terminal, navega a la carpeta `frontend` y ejecuta:
@@ -85,7 +85,7 @@ npm start
 
 ---
 
-## 🐳 Despliegue con Docker (Recomendado)
+## Despliegue con Docker (Recomendado)
 
 El proyecto cuenta con soporte para **Docker** y **Docker Compose** para compilar y levantar tanto el frontend como el backend de forma automatizada en contenedores aislados y optimizados.
 
@@ -97,8 +97,8 @@ Dado que el contenedor de backend lee la clave privada de Firebase, asegúrate d
 1. El archivo JSON de credenciales de Firebase en la carpeta `backend/`.
 2. Un archivo `.env` en la carpeta `backend/` configurado con el nombre correcto del archivo de credenciales y tu secreto JWT:
    ```env
-   FIREBASE_CREDENTIALS_PATH=./tu-archivo-de-firebase.json
-   JWT_SECRET=tu_secreto_jwt
+   FIREBASE_CREDENTIALS_PATH=./archivo-de-firebase.json
+   JWT_SECRET=jwt_secreto
    ```
 
 ### 3. Levantar los Contenedores
@@ -129,7 +129,7 @@ docker compose down
 
 ---
 
-## 🔑 Autenticación y Cuentas de Prueba
+## Autenticación y Cuentas de Prueba
 
 La aplicación cuenta con seguridad **JWT (JSON Web Tokens)**. Todas las peticiones al backend (a excepción de Login y Registro) requieren un token de portador (`Bearer Token`) válido enviado automáticamente por el interceptor del frontend.
 
@@ -150,7 +150,7 @@ curl -X POST http://localhost:3000/auth/register \
 
 ---
 
-## 🛠️ Tecnologías y Arquitectura Utilizadas
+## Tecnologías y Arquitectura Utilizadas
 
 - **Billetera Compartida por Email (Multiusuario):** Se diseñó una segunda billetera que se comparte con otro usuario registrado mediante vinculación de email y presupuesto compartido en Ajustes. Cuenta con un selector global reactivo en la barra superior que muestra el nombre del compañero ("Billetera Compartida con {nombre}").
 - **Servicio Central de Billetera (`WalletService`):** Se creó un servicio compartido para controlar la billetera activa y automatizar la reactivación y recarga de datos en todas las pantallas a través de efectos de Angular (`effect`).

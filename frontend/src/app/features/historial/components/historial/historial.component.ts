@@ -30,6 +30,8 @@ export class HistoryComponent implements OnInit {
   protected readonly transactions = this.svc.transactions;
 
   editingTransactionId = signal<string | null>(null);
+  budgetErrorMessage = signal<string | null>(null);
+  transactionToDelete = signal<{ id: string, monto: number } | null>(null);
 
   setMode(mode: 'Temporal' | 'Categoría'): void {
     this.svc.setMode(mode);
@@ -57,15 +59,47 @@ export class HistoryComponent implements OnInit {
 
   deleteTransaction(id: string | undefined, monto: number): void {
     if (!id) return;
-    if (confirm('¿Estás seguro de que deseas eliminar este movimiento?')) {
-      this.svc.deleteTransaction(id, monto).subscribe();
+    this.transactionToDelete.set({ id, monto });
+  }
+
+  confirmDeleteTransaction(): void {
+    const tx = this.transactionToDelete();
+    if (tx) {
+      this.svc.deleteTransaction(tx.id, tx.monto).subscribe({
+        next: () => {
+          this.transactionToDelete.set(null);
+        },
+        error: (err) => {
+          alert('Error al eliminar el movimiento.');
+          console.error(err);
+          this.transactionToDelete.set(null);
+        }
+      });
     }
+  }
+
+  closeDeleteModal(): void {
+    this.transactionToDelete.set(null);
+  }
+
+  protected formatAmount(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = input.value.replace(/\D/g, '');
+    if (val) {
+      val = Number(val).toLocaleString('es-CL');
+    }
+    input.value = val;
+  }
+
+  protected formatInitialMonto(monto: number): string {
+    const absVal = Math.abs(monto);
+    return absVal > 0 ? absVal.toLocaleString('es-CL') : '';
   }
 
   saveEdit(transaction: any, desc: string, montoStr: string, catNombre: string): void {
     const id = transaction.id;
     if (!id) return;
-    const montoRaw = Number(montoStr);
+    const montoRaw = Number(montoStr.replace(/\D/g, ''));
     if (!desc || isNaN(montoRaw) || montoRaw === 0) {
       alert('Por favor, ingresa una descripción válida y un monto distinto de cero.');
       return;
@@ -74,6 +108,17 @@ export class HistoryComponent implements OnInit {
     const categoryObj = this.categories().find(c => c.nombre === catNombre);
     const isIngreso = categoryObj?.esIngreso ?? false;
     const monto = isIngreso ? Math.abs(montoRaw) : -Math.abs(montoRaw);
+
+    if (!isIngreso && categoryObj) {
+      const spent = this.transactions()
+        .filter(t => t.id !== transaction.id && !t.esIngreso && t.categoriaNombre === catNombre)
+        .reduce((acc, t) => acc + Math.abs(t.monto), 0);
+      const remaining = (categoryObj.limiteMonto ?? 0) - spent;
+      if (montoRaw > remaining) {
+        this.budgetErrorMessage.set('El monto ingresado excede el presupuesto disponible de la categoría.');
+        return;
+      }
+    }
 
     this.svc.updateTransaction(id, {
       descripcion: desc,
@@ -86,7 +131,7 @@ export class HistoryComponent implements OnInit {
         this.cancelEdit();
       },
       error: (err) => {
-        alert('Error al guardar la transacción');
+        this.budgetErrorMessage.set(err.error?.message || 'Error al guardar la transacción.');
         console.error(err);
       }
     });

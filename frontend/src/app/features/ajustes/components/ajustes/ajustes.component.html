@@ -51,7 +51,13 @@
         <strong>Notificaciones</strong>
         <p>Alertas cuando una categoría supera el 80%</p>
       </div>
-      <span class="toggle toggle--on">Activas</span>
+      <button 
+        type="button" 
+        class="toggle" 
+        [class.toggle--on]="notificacionesActivas"
+        (click)="toggleNotifications()">
+        {{ notificacionesActivas ? 'Activas' : 'Inactivas' }}
+      </button>
     </div>
   </article>
 

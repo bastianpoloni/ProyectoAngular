@@ -57,7 +57,7 @@
           <article class="edit-mode-article">
             <div class="edit-inputs">
               <input type="text" [value]="transaction.descripcion" #editDesc class="inline-input" placeholder="Descripción" />
-              <input type="number" [value]="transaction.monto" #editMonto class="inline-input" placeholder="Monto" />
+              <input type="text" inputmode="numeric" [value]="formatInitialMonto(transaction.monto)" #editMonto class="inline-input" placeholder="Monto" (input)="formatAmount($event)" />
               <select [value]="transaction.categoriaNombre" #editCat class="inline-select">
                 @for (category of categories(); track category.nombre) {
                   <option [value]="category.nombre">{{ category.nombre }}</option>
@@ -109,3 +109,30 @@
     
   </aside>
 </section>
+
+<!-- Modal Advertencia de Presupuesto -->
+@if (budgetErrorMessage()) {
+  <div class="modal-backdrop" (click)="budgetErrorMessage.set(null)">
+    <div class="modal-content card-surface" (click)="$event.stopPropagation()" style="max-width: 400px; padding: 24px; text-align: center;">
+      <h3 style="margin: 0 0 10px; font-family: var(--font-display); font-size: 1.5rem; color: #e86f6f;">Límite Excedido</h3>
+      <p style="margin: 0 0 20px; color: var(--text); font-size: 0.95rem; line-height: 1.5;">{{ budgetErrorMessage() }}</p>
+      <div class="modal-actions" style="display: flex; justify-content: center;">
+        <button type="button" class="btn-save" (click)="budgetErrorMessage.set(null)" style="background: #e86f6f; max-width: 120px;">Aceptar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Confirmación de Eliminación -->
+@if (transactionToDelete()) {
+  <div class="modal-backdrop" (click)="closeDeleteModal()">
+    <div class="modal-content card-surface" (click)="$event.stopPropagation()" style="max-width: 400px; padding: 24px; text-align: center;">
+      <h3 style="margin: 0 0 10px; font-family: var(--font-display); font-size: 1.5rem; color: #e86f6f;">Confirmar Eliminación</h3>
+      <p style="margin: 0 0 20px; color: var(--text); font-size: 0.95rem; line-height: 1.5;">¿Estás seguro de que deseas eliminar este movimiento?</p>
+      <div class="modal-actions" style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" class="btn-cancel" (click)="closeDeleteModal()" style="max-width: 120px; margin-top: 0;">Cancelar</button>
+        <button type="button" class="btn-save" (click)="confirmDeleteTransaction()" style="background: #e86f6f; max-width: 120px; margin-top: 0;">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}
