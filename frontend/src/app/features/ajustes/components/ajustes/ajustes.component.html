@@ -19,21 +19,6 @@
     </div>
   </div>
 
-  <!-- Agregar presupuesto -->
-  <div class="settings-card">
-    <div class="settings-card-info">
-      <strong>Agregar presupuesto</strong>
-      <p>Incrementar el presupuesto actual disponible</p>
-    </div>
-    <div class="settings-card-actions">
-      <div class="amount-action">
-        <input #amountInput type="text" inputmode="numeric" placeholder="Monto" (input)="formatAmount($event)" />
-        <button type="button" (click)="addBalance(amountInput)">Agregar</button>
-      </div>
-      <p class="hint">Actualmente: {{ summary().balance | clpCurrency }}</p>
-    </div>
-  </div>
-
   <!-- Billetera compartida -->
   <div class="settings-card">
     <div class="settings-card-info">
