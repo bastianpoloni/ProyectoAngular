@@ -1,12 +1,10 @@
 export interface User {
   id: string;
   nombre: string;
-  saldo: number;
-  presupuesto?: number;
-  ingresoMensual?: number;
-  notificaciones?: boolean;
   presupuesto: number;
   saldo?: number;
+  ingresoMensual?: number;
+  notificaciones?: boolean;
 }
 
 export interface WalletSummary {

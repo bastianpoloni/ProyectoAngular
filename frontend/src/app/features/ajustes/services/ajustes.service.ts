@@ -6,12 +6,14 @@ import { BudgetCategory } from '../../categorias/interfaces/category';
 import { User, WalletSummary } from '../interfaces/user';
 import { environment } from '../../../../environments/environment';
 import { WalletService } from '../../../shared/services/wallet.service';
+import { Auth } from '../../auth/services/auth';
 
 @Injectable({ providedIn: 'root' })
 export class Ajustes {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
   private readonly walletService = inject(WalletService);
+  private readonly auth = inject(Auth);
 
   get uid(): string {
     return this.walletService.currentWalletUid();
@@ -113,6 +115,12 @@ export class Ajustes {
 
 
 
+  addBalance(amount: number) {
+    const currentBudget = this.summary().budget;
+    const newBudget = currentBudget + amount;
+    return this.updateBudget(newBudget);
+  }
+
   updateBudget(budget: number) {
     const userId = this.uid;
     if (!userId) {
@@ -127,7 +135,11 @@ export class Ajustes {
       );
     } else {
       return this.http.patch<User>(`${this.apiUrl}/usuarios/${userId}`, { presupuesto: budget }).pipe(
-        tap((user) => this.usersState.set([user]))
+        tap((user) => {
+          this.usersState.set([user]);
+          localStorage.setItem('usuario', JSON.stringify(user));
+          this.auth.currentUser.set(user);
+        })
       );
     }
   }
@@ -141,6 +153,7 @@ export class Ajustes {
       tap((user) => {
         this.usersState.set([user]);
         localStorage.setItem('usuario', JSON.stringify(user));
+        this.auth.currentUser.set(user);
       })
     );
   }

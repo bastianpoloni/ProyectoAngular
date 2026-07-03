@@ -41,7 +41,15 @@ export class Auth {
 
   getCurrentUser() {
     const userJson = localStorage.getItem('usuario');
-    return userJson ? JSON.parse(userJson) : null;
+    if (!userJson || userJson === 'undefined') {
+      return null;
+    }
+    try {
+      return JSON.parse(userJson);
+    } catch (e) {
+      console.error('Error parsing user JSON from localStorage:', e);
+      return null;
+    }
   }
 
   updatePassword(newPassword: string) {
